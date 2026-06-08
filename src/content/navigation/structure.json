@@ -1,0 +1,81 @@
+[
+  {
+    "id": "1",
+    "domainTitle": "Agentic Architecture & Orchestration",
+    "weight": "27%",
+    "order": 1,
+    "tasks": [
+      {
+        "taskId": "1.1",
+        "taskTitle": "Design and implement agentic loops",
+        "pages": [
+          { "label": "Getting Started", "slug": "/domain-1/task-1-1/setup", "order": 1 },
+          { "label": "The Agentic Loop Lifecycle", "slug": "/domain-1/task-1-1/loop-lifecycle", "order": 2 },
+          { "label": "Who Decides What's Next?", "slug": "/domain-1/task-1-1/model-driven", "order": 3 },
+          { "label": "Anti-Patterns: Spot the Break", "slug": "/domain-1/task-1-1/antipatterns", "order": 4 }
+        ]
+      },
+      { "taskId": "1.2", "taskTitle": "Orchestrate multi-agent systems", "pages": [] },
+      { "taskId": "1.3", "taskTitle": "Subagent invocation & context passing", "pages": [] },
+      { "taskId": "1.4", "taskTitle": "Multi-step workflows & handoffs", "pages": [] },
+      { "taskId": "1.5", "taskTitle": "Agent SDK hooks", "pages": [] },
+      { "taskId": "1.6", "taskTitle": "Task decomposition strategies", "pages": [] },
+      { "taskId": "1.7", "taskTitle": "Session state, resumption & forking", "pages": [] }
+    ]
+  },
+  {
+    "id": "2",
+    "domainTitle": "Tool Design & MCP Integration",
+    "weight": "18%",
+    "order": 2,
+    "tasks": [
+      { "taskId": "2.1", "taskTitle": "Effective tool interfaces", "pages": [] },
+      { "taskId": "2.2", "taskTitle": "Structured error responses", "pages": [] },
+      { "taskId": "2.3", "taskTitle": "Tool distribution & tool choice", "pages": [] },
+      { "taskId": "2.4", "taskTitle": "Integrate MCP servers", "pages": [] },
+      { "taskId": "2.5", "taskTitle": "Built-in tools", "pages": [] }
+    ]
+  },
+  {
+    "id": "3",
+    "domainTitle": "Claude Code Configuration & Workflows",
+    "weight": "20%",
+    "order": 3,
+    "tasks": [
+      { "taskId": "3.1", "taskTitle": "CLAUDE.md configuration", "pages": [] },
+      { "taskId": "3.2", "taskTitle": "Custom slash commands & skills", "pages": [] },
+      { "taskId": "3.3", "taskTitle": "Path-specific rules", "pages": [] },
+      { "taskId": "3.4", "taskTitle": "Plan mode vs. direct execution", "pages": [] },
+      { "taskId": "3.5", "taskTitle": "Iterative refinement techniques", "pages": [] },
+      { "taskId": "3.6", "taskTitle": "CI/CD integration", "pages": [] }
+    ]
+  },
+  {
+    "id": "4",
+    "domainTitle": "Prompt Engineering & Structured Output",
+    "weight": "20%",
+    "order": 4,
+    "tasks": [
+      { "taskId": "4.1", "taskTitle": "Explicit criteria prompts", "pages": [] },
+      { "taskId": "4.2", "taskTitle": "Few-shot prompting", "pages": [] },
+      { "taskId": "4.3", "taskTitle": "Structured output via tool use", "pages": [] },
+      { "taskId": "4.4", "taskTitle": "Validation & retry loops", "pages": [] },
+      { "taskId": "4.5", "taskTitle": "Batch processing strategies", "pages": [] },
+      { "taskId": "4.6", "taskTitle": "Multi-pass review architectures", "pages": [] }
+    ]
+  },
+  {
+    "id": "5",
+    "domainTitle": "Context Management & Reliability",
+    "weight": "15%",
+    "order": 5,
+    "tasks": [
+      { "taskId": "5.1", "taskTitle": "Manage conversation context", "pages": [] },
+      { "taskId": "5.2", "taskTitle": "Escalation & ambiguity resolution", "pages": [] },
+      { "taskId": "5.3", "taskTitle": "Error propagation", "pages": [] },
+      { "taskId": "5.4", "taskTitle": "Large codebase exploration", "pages": [] },
+      { "taskId": "5.5", "taskTitle": "Human review & confidence", "pages": [] },
+      { "taskId": "5.6", "taskTitle": "Information provenance", "pages": [] }
+    ]
+  }
+]

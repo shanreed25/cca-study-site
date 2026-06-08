@@ -1,0 +1,444 @@
+---
+import StudyLayout from '../../../layouts/StudyLayout.astro';
+const bodyHtml = `<header>
+    <div class="kicker">// CCA-F FIELD MANUAL : SETUP</div>
+    <h1>Getting<br>Started</h1>
+    <p class="subtitle">Zero to a working line of dialogue with the model. No tools, no loop, no framework. Just Python, the SDK, a key, and one request that comes back with an answer.<span class="blink"></span></p>
+  </header>
+
+  <!-- GOAL -->
+  <div class="goal">
+    <span class="tag">▶ THE GOAL</span>
+    <p class="big">By the end of this page you will send <b>one request</b> to Claude and print the reply.</p>
+    <p class="sub">That single round-trip is the foundation. Tools, loops, and agents all sit on top of this exact call.</p>
+  </div>
+
+  <!-- WHAT YOU NEED -->
+  <section class="step" id="need" style="border-top:none;padding-top:20px;">
+    <div class="step-head"><h2 style="color:var(--neon-amber)">What You Need</h2></div>
+    <p class="lead">Three things. That is the whole list.</p>
+    <div class="need">
+      <div class="need-item">
+        <div class="ni">01</div>
+        <h3 class="glow-am">Python 3.9+</h3>
+        <p>The SDK requires Python 3.9 or newer. We install and verify it in Step 1.</p>
+      </div>
+      <div class="need-item">
+        <div class="ni">02</div>
+        <h3 class="glow-am">An API key</h3>
+        <p>A secret string from the Anthropic Console that authorizes your requests. Step 2.</p>
+      </div>
+      <div class="need-item">
+        <div class="ni">03</div>
+        <h3 class="glow-am">A terminal</h3>
+        <p>Terminal on Mac/Linux, PowerShell on Windows. Where you run every command below.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 1: PYTHON -->
+  <section class="step" id="s1">
+    <div class="step-head"><span class="step-num">01</span><h2>Install Python</h2></div>
+    <p class="lead">Pick your OS. After installing, the verify command should print a version of 3.9 or higher.</p>
+
+    <div class="os-tabs" data-group="py">
+      <button class="os-tab active" data-os="mac">macOS</button>
+      <button class="os-tab" data-os="win">Windows</button>
+      <button class="os-tab" data-os="linux">Linux</button>
+    </div>
+
+    <div class="os-panel active" data-group="py" data-os="mac">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Terminal — macOS</span></div>
+<pre><code><span class="c"># Install Homebrew first if you don't have it, then:</span>
+<span class="prompt">$</span> brew install python
+
+<span class="c"># Verify</span>
+<span class="prompt">$</span> python3 --version
+<span class="c"># -> Python 3.12.x</span></code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="py" data-os="win">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">PowerShell — Windows</span></div>
+<pre><code><span class="c"># Easiest: install from python.org and CHECK</span>
+<span class="c"># "Add python.exe to PATH" during the installer.</span>
+<span class="c"># Or via winget:</span>
+<span class="prompt">&gt;</span> winget install Python.Python.3.12
+
+<span class="c"># Verify (restart PowerShell first)</span>
+<span class="prompt">&gt;</span> python --version
+<span class="c"># -> Python 3.12.x</span></code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="py" data-os="linux">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Terminal — Linux (Debian/Ubuntu)</span></div>
+<pre><code><span class="prompt">$</span> sudo apt update
+<span class="prompt">$</span> sudo apt install python3 python3-venv python3-pip
+
+<span class="c"># Verify</span>
+<span class="prompt">$</span> python3 --version
+<span class="c"># -> Python 3.12.x</span></code></pre>
+      </div>
+    </div>
+
+    <div class="why"><b>Why:</b> the <code>anthropic</code> package targets Python 3.9 and up. Anything older will fail to install or import.</div>
+  </section>
+
+  <!-- STEP 2: API KEY -->
+  <section class="step" id="s2">
+    <div class="step-head"><span class="step-num">02</span><h2>Get Your API Key</h2></div>
+    <p class="lead">Create a key in the Anthropic Console. This is what proves a request is yours and bills it to your account.</p>
+    <ol style="list-style:none;">
+      <li class="lead">→ Go to <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> and sign in.</li>
+      <li class="lead">→ Open <span class="glow-cy">Settings → API Keys</span> and create a new key.</li>
+      <li class="lead">→ Copy it now. It looks like <code class="glow-mg">sk-ant-...</code> and is shown only once.</li>
+    </ol>
+    <div class="warn"><b>⚠ Keep it secret.</b> Never paste your key into code you will commit, share, or post. We load it from an environment variable in Step 4 so it stays out of your files.</div>
+    <div class="why"><b>Why:</b> a leaked key lets anyone spend against your account. Environment variables keep the secret in your shell session, not in source control.</div>
+  </section>
+
+  <!-- STEP 3: VENV -->
+  <section class="step" id="s3">
+    <div class="step-head"><span class="step-num">03</span><h2>Create a Virtual Environment</h2></div>
+    <p class="lead">A venv is an isolated sandbox for this project's packages, so the SDK does not collide with anything else on your machine. Create it once, then activate it whenever you work.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">create the venv (all systems)</span></div>
+<pre><code><span class="c"># Make a project folder and step into it</span>
+<span class="prompt">$</span> mkdir claude-start && cd claude-start
+
+<span class="c"># Create the virtual environment named .venv</span>
+<span class="prompt">$</span> python3 -m venv .venv</code></pre>
+    </div>
+
+    <p class="lead" style="margin-top:18px;">Activation is the one command that differs per OS:</p>
+
+    <div class="os-tabs" data-group="venv">
+      <button class="os-tab active" data-os="mac">macOS</button>
+      <button class="os-tab" data-os="win">Windows</button>
+      <button class="os-tab" data-os="linux">Linux</button>
+    </div>
+
+    <div class="os-panel active" data-group="venv" data-os="mac">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — macOS (zsh/bash)</span></div>
+<pre><code><span class="prompt">$</span> source .venv/bin/activate
+
+<span class="c"># Your prompt now shows (.venv)</span>
+<span class="c">(.venv) $</span></code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="venv" data-os="win">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — Windows (PowerShell)</span></div>
+<pre><code><span class="prompt">&gt;</span> .venv\\Scripts\\Activate.ps1
+
+<span class="c"># If blocked by execution policy, run once:</span>
+<span class="prompt">&gt;</span> Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+<span class="c"># Prompt now shows (.venv)</span>
+<span class="c">(.venv) &gt;</span></code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="venv" data-os="linux">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — Linux (bash)</span></div>
+<pre><code><span class="prompt">$</span> source .venv/bin/activate
+
+<span class="c"># Your prompt now shows (.venv)</span>
+<span class="c">(.venv) $</span></code></pre>
+      </div>
+    </div>
+
+    <div class="why"><b>Why:</b> without a venv, <code>pip install</code> dumps packages into your system Python, which causes version conflicts across projects. The venv keeps this project self-contained. When the prompt shows <span class="glow-lm">(.venv)</span>, you are inside it.</div>
+  </section>
+
+  <!-- STEP 4: INSTALL SDK -->
+  <section class="step" id="s4">
+    <div class="step-head"><span class="step-num">04</span><h2>Install the SDK</h2></div>
+    <p class="lead">One command, same on every OS. Run it with your venv active.</p>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">install anthropic (all systems)</span></div>
+<pre><code><span class="c">(.venv) $</span> pip install anthropic
+
+<span class="c"># Confirm it landed</span>
+<span class="c">(.venv) $</span> pip show anthropic</code></pre>
+    </div>
+    <div class="why"><b>Why:</b> <code>anthropic</code> is the official Python SDK. It gives you the <code>Anthropic</code> client and the <code>messages.create()</code> method you are about to call.</div>
+  </section>
+
+  <!-- STEP 5: SET KEY -->
+  <section class="step" id="s5">
+    <div class="step-head"><span class="step-num">05</span><h2>Set Your API Key</h2></div>
+    <p class="lead">The SDK automatically reads an environment variable named <code class="glow-cy">ANTHROPIC_API_KEY</code>. Set it so you never type the key into your code.</p>
+
+    <div class="os-tabs" data-group="key">
+      <button class="os-tab active" data-os="mac">macOS</button>
+      <button class="os-tab" data-os="win">Windows</button>
+      <button class="os-tab" data-os="linux">Linux</button>
+    </div>
+
+    <div class="os-panel active" data-group="key" data-os="mac">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">set key — macOS (zsh)</span></div>
+<pre><code><span class="c"># For this session only:</span>
+<span class="prompt">$</span> export ANTHROPIC_API_KEY=<span class="s">"sk-ant-your-key-here"</span>
+
+<span class="c"># To persist it, add that line to ~/.zshrc, then:</span>
+<span class="prompt">$</span> source ~/.zshrc</code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="key" data-os="win">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">set key — Windows (PowerShell)</span></div>
+<pre><code><span class="c"># For this session only:</span>
+<span class="prompt">&gt;</span> $env:ANTHROPIC_API_KEY = <span class="s">"sk-ant-your-key-here"</span>
+
+<span class="c"># To persist across sessions:</span>
+<span class="prompt">&gt;</span> setx ANTHROPIC_API_KEY <span class="s">"sk-ant-your-key-here"</span>
+<span class="c"># (reopen PowerShell for setx to take effect)</span></code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="key" data-os="linux">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">set key — Linux (bash)</span></div>
+<pre><code><span class="c"># For this session only:</span>
+<span class="prompt">$</span> export ANTHROPIC_API_KEY=<span class="s">"sk-ant-your-key-here"</span>
+
+<span class="c"># To persist it, add that line to ~/.bashrc, then:</span>
+<span class="prompt">$</span> source ~/.bashrc</code></pre>
+      </div>
+    </div>
+
+    <div class="why"><b>Why:</b> the client picks up <code>ANTHROPIC_API_KEY</code> on its own, so your <code>.py</code> file never contains the secret. That is what makes the file safe to commit or share.</div>
+  </section>
+
+  <!-- STEP 6: WRITE FILE -->
+  <section class="step" id="s6">
+    <div class="step-head"><span class="step-num">06</span><h2>Write the File</h2></div>
+    <p class="lead">Create <code class="glow-cy">hello_claude.py</code> in your project folder. This is the entire program: one request, one printed reply. No tools, no loop.</p>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">hello_claude.py</span></div>
+<pre><code><span class="k">from</span> anthropic <span class="k">import</span> Anthropic
+
+<span class="c"># Reads ANTHROPIC_API_KEY from your environment automatically</span>
+client <span class="k">=</span> <span class="f">Anthropic</span>()
+
+resp <span class="k">=</span> client.messages.<span class="f">create</span>(
+    model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,
+    max_tokens<span class="k">=</span><span class="n">256</span>,
+    messages<span class="k">=</span>[
+        {<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: <span class="s">"Say hello and tell me one fact about owls."</span>},
+    ],
+)
+
+<span class="c"># The reply is a list of content blocks. For a plain text answer,</span>
+<span class="c"># the first block holds the text.</span>
+<span class="f">print</span>(resp.content[<span class="n">0</span>].text)</code></pre>
+    </div>
+    <div class="why"><b>Why:</b> <code>Anthropic()</code> with no arguments uses the env var key. <code>model</code> picks which Claude answers. <code>max_tokens</code> caps the reply length. <code>messages</code> is the conversation, here a single user turn. <code>resp.content[0].text</code> pulls the text out of the first content block.</div>
+  </section>
+
+  <!-- STEP 7: RUN -->
+  <section class="step" id="s7">
+    <div class="step-head"><span class="step-num">07</span><h2>Run It</h2></div>
+    <p class="lead">With your venv active and key set, run the file.</p>
+
+    <div class="os-tabs" data-group="run">
+      <button class="os-tab active" data-os="mac">macOS</button>
+      <button class="os-tab" data-os="win">Windows</button>
+      <button class="os-tab" data-os="linux">Linux</button>
+    </div>
+
+    <div class="os-panel active" data-group="run" data-os="mac">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">run — macOS</span></div>
+<pre><code><span class="c">(.venv) $</span> python3 hello_claude.py</code></pre>
+      </div>
+    </div>
+    <div class="os-panel" data-group="run" data-os="win">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">run — Windows</span></div>
+<pre><code><span class="c">(.venv) &gt;</span> python hello_claude.py</code></pre>
+      </div>
+    </div>
+    <div class="os-panel" data-group="run" data-os="linux">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">run — Linux</span></div>
+<pre><code><span class="c">(.venv) $</span> python3 hello_claude.py</code></pre>
+      </div>
+    </div>
+
+    <div class="output">
+      <div class="label">// EXPECTED OUTPUT</div>
+<pre>Hello! Here's an owl fact: owls can rotate their heads
+about 270 degrees because they have extra neck vertebrae
+and a specialized blood-flow system that keeps the brain
+supplied during the turn.</pre>
+    </div>
+    <div class="why"><b>Why:</b> if you see a reply, every piece is wired correctly: Python runs, the SDK is installed, the key authorizes you, and the request reached the model and came back. If you get an authentication error, your key is unset or wrong (revisit Step 5).</div>
+  </section>
+
+  <!-- DONE -->
+  <div class="done-box">
+    <h3>// YOU'RE LIVE</h3>
+    <ul>
+      <li><b>You have a working line to the model.</b> One request in, one reply out. Everything else is built on this exact call.</li>
+      <li><b>Your secret stays out of your code.</b> The key lives in an environment variable, so <code>hello_claude.py</code> is safe to share.</li>
+      <li><b>Next up:</b> give the model a tool, then wrap the call in a loop so it can act on what the tool returns. That is the agentic loop.</li>
+    </ul>
+  </div>
+
+  <footer>
+    GETTING STARTED // single request, no tools, no loop // model strings update over time, see docs.claude.com<span class="blink"></span>
+  </footer>`;
+---
+
+<StudyLayout title="Getting Started">
+  <div class="wrap" set:html={bodyHtml}></div>
+</StudyLayout>
+
+<style is:global>
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px 120px;position:relative;z-index:1;}
+
+  /* HEADER */
+  header{padding:90px 0 50px;border-bottom:1px solid var(--panel-line);}
+  .kicker{
+    font-family:var(--crt);font-size:1.5rem;color:var(--neon-cyan);letter-spacing:4px;
+    text-shadow:0 0 12px rgba(25,240,255,0.6);margin-bottom:10px;
+  }
+  h1{
+    font-family:var(--crt);font-size:clamp(3rem,8vw,6rem);line-height:0.92;color:var(--neon-cyan);
+    text-shadow:0 0 18px rgba(25,240,255,0.7),4px 4px 0 rgba(255,43,214,0.35);
+    letter-spacing:2px;text-transform:uppercase;
+  }
+  .subtitle{margin-top:22px;max-width:660px;color:var(--text-dim);font-size:0.95rem;}
+  
+  
+
+  /* GOAL BANNER */
+  .goal{
+    margin:48px 0;border:1px solid var(--neon-cyan);
+    background:linear-gradient(180deg,rgba(25,240,255,0.06),rgba(25,240,255,0.01));
+    padding:28px 30px;box-shadow:0 0 30px rgba(25,240,255,0.12),inset 0 0 30px rgba(25,240,255,0.04);
+    position:relative;
+  }
+  .goal .tag{
+    position:absolute;top:-11px;left:24px;background:var(--bg-deep);padding:0 10px;
+    font-family:var(--crt);font-size:1.2rem;color:var(--neon-cyan);letter-spacing:3px;
+    text-shadow:0 0 10px rgba(25,240,255,0.7);
+  }
+  .goal .big{font-size:1.12rem;color:#fff;line-height:1.5;font-weight:700;}
+  .goal .big b{color:var(--neon-lime);text-shadow:0 0 10px rgba(157,255,60,0.5);}
+  .goal .sub{margin-top:8px;font-size:0.86rem;color:var(--text-dim);font-weight:400;}
+
+  /* CHECKLIST */
+  .need{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:30px;
+  }
+  .need-item{
+    border:1px solid var(--panel-line);background:var(--panel);padding:18px;transition:.2s;
+  }
+  .need-item:hover{border-color:var(--neon-amber);box-shadow:0 0 18px rgba(255,182,39,0.14);transform:translateY(-3px);}
+  .need-item .ni{font-family:var(--crt);font-size:1.6rem;color:var(--neon-amber);text-shadow:0 0 10px rgba(255,182,39,0.5);}
+  .need-item h3{font-size:0.92rem;color:#fff;margin:2px 0 6px;}
+  .need-item p{font-size:0.8rem;color:var(--text-dim);}
+
+  /* STEP SECTIONS */
+  .step{padding:54px 0 0;border-top:1px dashed var(--panel-line);margin-top:54px;}
+  .step:first-of-type{border-top:none;}
+  .step-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;}
+  .step-num{
+    font-family:var(--crt);font-size:2.6rem;color:var(--neon-magenta);
+    text-shadow:0 0 14px rgba(255,43,214,0.6);line-height:1;
+  }
+  h2{font-family:var(--crt);font-size:clamp(1.8rem,4vw,2.8rem);color:var(--text);text-transform:uppercase;letter-spacing:1px;line-height:1;}
+  .lead{color:var(--text-dim);max-width:680px;margin:14px 0;font-size:0.92rem;}
+  p{font-size:0.92rem;}
+  p+p{margin-top:10px;}
+  a{color:var(--neon-cyan);text-decoration:none;border-bottom:1px dotted var(--neon-cyan);}
+  a:hover{text-shadow:0 0 8px rgba(25,240,255,0.6);}
+  .why{margin-top:12px;padding:12px 16px;border-left:2px solid var(--neon-lime);background:rgba(157,255,60,0.04);font-size:0.84rem;color:var(--text-dim);}
+  .why b{color:var(--neon-lime);}
+  .glow-cy{color:var(--neon-cyan);} .glow-mg{color:var(--neon-magenta);} .glow-lm{color:var(--neon-lime);} .glow-am{color:var(--neon-amber);}
+
+  /* CODE BLOCK */
+  .code{border:1px solid var(--panel-line);background:var(--bg);margin:18px 0;box-shadow:0 0 24px rgba(0,0,0,0.5);}
+  .code-bar{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--panel-line);background:var(--panel);}
+  .dot{width:11px;height:11px;border-radius:50%;}
+  .dot.r{background:var(--danger);box-shadow:0 0 8px var(--danger);}
+  .dot.y{background:var(--neon-amber);box-shadow:0 0 8px var(--neon-amber);}
+  .dot.g{background:var(--neon-lime);box-shadow:0 0 8px var(--neon-lime);}
+  .code-bar .fname{margin-left:8px;font-size:0.76rem;color:var(--text-dim);letter-spacing:1px;}
+  .code pre{margin:0;padding:18px 20px;overflow-x:auto;font-size:0.84rem;line-height:1.6;tab-size:4;}
+  .code pre code{font-family:var(--mono);color:var(--text);}
+  .prompt{color:var(--neon-lime);} /* shell $ */
+  .k{color:var(--neon-magenta);} .s{color:var(--neon-lime);} .c{color:var(--text-dim);font-style:italic;}
+  .f{color:var(--neon-cyan);} .n{color:var(--neon-amber);}
+
+  /* OS TABS */
+  .os-tabs{display:flex;gap:0;margin-top:14px;border-bottom:1px solid var(--panel-line);}
+  .os-tab{
+    font-family:var(--crt);font-size:1.25rem;letter-spacing:2px;padding:8px 22px;
+    background:transparent;color:var(--text-dim);border:1px solid transparent;border-bottom:none;
+    cursor:pointer;text-transform:uppercase;transition:.15s;
+  }
+  .os-tab:hover{color:var(--text);}
+  .os-tab.active{color:var(--neon-cyan);border-color:var(--panel-line);background:var(--panel);text-shadow:0 0 8px rgba(25,240,255,0.5);position:relative;top:1px;}
+  .os-panel{display:none;}
+  .os-panel.active{display:block;}
+
+  /* RUN OUTPUT */
+  .output{
+    border:1px solid var(--neon-lime);background:rgba(157,255,60,0.04);padding:16px 20px;margin:18px 0;
+    box-shadow:inset 0 0 18px rgba(157,255,60,0.05);
+  }
+  .output .label{font-family:var(--crt);font-size:1.2rem;color:var(--neon-lime);letter-spacing:2px;text-shadow:0 0 10px rgba(157,255,60,0.5);margin-bottom:6px;}
+  .output pre{font-size:0.84rem;color:var(--text);white-space:pre-wrap;}
+
+  /* CALLOUT (security) */
+  .warn{border:1px solid var(--neon-amber);background:linear-gradient(180deg,rgba(255,182,39,0.06),transparent);padding:14px 18px;margin:16px 0;font-size:0.86rem;}
+  .warn b{color:var(--neon-amber);}
+
+  /* DONE */
+  .done-box{
+    margin-top:60px;border:1px solid var(--neon-magenta);
+    background:linear-gradient(180deg,rgba(255,43,214,0.05),transparent);
+    padding:28px 30px;box-shadow:0 0 26px rgba(255,43,214,0.1);
+  }
+  .done-box h3{font-family:var(--crt);font-size:1.7rem;color:var(--neon-magenta);letter-spacing:2px;text-shadow:0 0 10px rgba(255,43,214,0.5);margin-bottom:14px;}
+  .done-box ul{list-style:none;}
+  .done-box li{padding-left:26px;position:relative;margin:12px 0;font-size:0.9rem;}
+  .done-box li::before{content:"▸";position:absolute;left:0;color:var(--neon-magenta);font-size:1.1rem;}
+  .done-box b{color:var(--neon-cyan);}
+
+  footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--panel-line);color:var(--text-dim);font-size:0.78rem;text-align:center;letter-spacing:1px;}
+</style>
+
+<script is:inline>
+(function(){
+  // OS tab switching, scoped per group so each section switches independently.
+  document.querySelectorAll('.os-tabs').forEach(function(tabs){
+    var group = tabs.getAttribute('data-group');
+    tabs.querySelectorAll('.os-tab').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var os = btn.getAttribute('data-os');
+        // toggle buttons in this group
+        tabs.querySelectorAll('.os-tab').forEach(function(b){ b.classList.toggle('active', b===btn); });
+        // toggle panels in this group
+        document.querySelectorAll('.os-panel[data-group="'+group+'"]').forEach(function(p){
+          p.classList.toggle('active', p.getAttribute('data-os')===os);
+        });
+      });
+    });
+  });
+})();
+</script>

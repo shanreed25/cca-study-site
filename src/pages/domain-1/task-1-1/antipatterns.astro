@@ -1,0 +1,475 @@
+---
+import StudyLayout from '../../../layouts/StudyLayout.astro';
+const bodyHtml = `<header>
+    <div class="kicker">// CCA-F FIELD MANUAL : DOMAIN 1.1 ANTI-PATTERNS</div>
+    <h1>Spot the<br>Break</h1>
+    <p class="subtitle">Building a correct agentic loop is one skill. Recognizing a broken one in a lineup of plausible code is a different skill, and it is the one multiple-choice exams are built to test. This page drills the second.<span class="blink"></span></p>
+  </header>
+
+  <!-- INTRO -->
+  <div class="intro">
+    <span class="tag">▶ WHY THIS PAGE EXISTS</span>
+    <p class="big">A correct loop is easy to write once you understand it. The trap is that <b>broken loops look almost identical</b> to correct ones.</p>
+    <p class="sub">Each anti-pattern below has a loop, a stop condition, and code that runs. Three of those things being true is exactly what makes the fourth (it is wrong) so easy to miss under time pressure. Commit to an answer before you reveal each one.</p>
+  </div>
+
+  <div class="rule">
+    <b>The one rule every anti-pattern violates:</b> a correct loop continues while <code>stop_reason == "tool_use"</code> and terminates when <code>stop_reason == "end_turn"</code>. The model's <code>stop_reason</code> is the only authoritative completion signal. Anything else used as the primary stop is an anti-pattern.
+  </div>
+
+  <!-- ============ CARD 1 ============ -->
+  <div class="card" id="card1">
+    <div class="card-head">
+      <span class="card-num">01</span>
+      <span class="card-title">Parsing language for "done"</span>
+    </div>
+    <div class="card-body">
+      <p class="card-intro">A support agent loop. It is supposed to look up an order and reply. Read it, then decide.</p>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">loop_a.py</span></div>
+<pre><code>messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: <span class="s">"Where is order A-4471?"</span>}]
+
+<span class="k">while</span> <span class="k">True</span>:
+    resp <span class="k">=</span> client.messages.<span class="f">create</span>(model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,
+        max_tokens<span class="k">=</span><span class="n">1024</span>, tools<span class="k">=</span>tools, messages<span class="k">=</span>messages)
+    messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"assistant"</span>, <span class="s">"content"</span>: resp.content})
+
+    text <span class="k">=</span> resp.content[<span class="n">0</span>].text <span class="k">if</span> resp.content <span class="k">else</span> <span class="s">""</span>
+<span class="bug-line">    <span class="k">if</span> <span class="s">"done"</span> <span class="k">in</span> text.<span class="f">lower</span>() <span class="k">or</span> <span class="s">"resolved"</span> <span class="k">in</span> text.<span class="f">lower</span>():</span>
+<span class="bug-line">        <span class="k">break</span>   <span class="c"># stop when the model says it's finished</span></span>
+    <span class="c"># ... otherwise run tools and continue</span></code></pre>
+      </div>
+
+      <div class="gate" data-card="1">
+        <div class="q">Does this loop terminate correctly?</div>
+        <div class="gate-btns">
+          <button class="gate-btn yes" data-answer="yes">YES, it's fine</button>
+          <button class="gate-btn no" data-answer="no">NO, it's broken</button>
+        </div>
+        <div class="gate-feedback"><span class="verdict"></span></div>
+      </div>
+
+      <div class="reveal">
+        <div class="rblock rb-trap">
+          <h4>WHY IT LOOKS RIGHT</h4>
+          <p>It has a loop, it checks a condition, it breaks. The keywords "done" and "resolved" feel like a reasonable signal that the model finished. If you have only ever seen correct loops, nothing here screams wrong.</p>
+        </div>
+        <div class="rblock rb-break">
+          <h4>WHAT BREAKS IT</h4>
+          <p>The model's prose is not a contract. It might say <code>"Let me check if this is done."</code> mid-task and trigger a false stop. Or it finishes properly but phrases it as <code>"Your order shipped."</code> with no keyword, so the loop never exits and burns calls forever. You are guessing at completion from free text the model was never asked to standardize.</p>
+        </div>
+        <div class="rblock rb-fix">
+          <h4>THE FIX</h4>
+          <div class="code" style="margin:8px 0 0;">
+            <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">fixed.py</span></div>
+<pre><code><span class="k">if</span> resp.stop_reason <span class="k">!=</span> <span class="s">"tool_use"</span>:   <span class="c"># authoritative signal</span>
+    <span class="k">break</span></code></pre>
+          </div>
+        </div>
+        <div class="family">FAMILY: <span>anything-but-stop_reason / NL-parsing trap</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CARD 2 ============ -->
+  <div class="card" id="card2">
+    <div class="card-head">
+      <span class="card-num">02</span>
+      <span class="card-title">Iteration cap as the brake</span>
+    </div>
+    <div class="card-body">
+      <p class="card-intro">Same task, different stop strategy. Decide before revealing.</p>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">loop_b.py</span></div>
+<pre><code>messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: <span class="s">"Where is order A-4471?"</span>}]
+
+<span class="bug-line"><span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(<span class="n">5</span>):   <span class="c"># run the loop five times, then stop</span></span>
+    resp <span class="k">=</span> client.messages.<span class="f">create</span>(model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,
+        max_tokens<span class="k">=</span><span class="n">1024</span>, tools<span class="k">=</span>tools, messages<span class="k">=</span>messages)
+    messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"assistant"</span>, <span class="s">"content"</span>: resp.content})
+
+    tool_results <span class="k">=</span> <span class="f">run_tools</span>(resp)
+    messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: tool_results})
+<span class="c"># loop just ends after 5 passes</span></code></pre>
+      </div>
+
+      <div class="gate" data-card="2">
+        <div class="q">Does this loop terminate correctly?</div>
+        <div class="gate-btns">
+          <button class="gate-btn yes" data-answer="yes">YES, it's fine</button>
+          <button class="gate-btn no" data-answer="no">NO, it's broken</button>
+        </div>
+        <div class="gate-feedback"><span class="verdict"></span></div>
+      </div>
+
+      <div class="reveal">
+        <div class="rblock rb-trap">
+          <h4>WHY IT LOOKS RIGHT</h4>
+          <p>It cannot run forever, which feels safe. A fixed number of passes looks disciplined, and "cap your loops" is advice you have heard before. The code is clean and obviously terminates.</p>
+        </div>
+        <div class="rblock rb-break">
+          <h4>WHAT BREAKS IT</h4>
+          <p>It never asks the model whether it is finished. There is <span class="glow-dg">no <code>stop_reason</code> check at all</span>. If the task is done in 2 passes, it wastes 3 more. If it needs 6, it gets cut off mid-task with no answer. The number 5 is arbitrary and unrelated to when the work actually completes. A cap is a <b>backstop</b> against runaway loops, never the mechanism that decides completion.</p>
+        </div>
+        <div class="rblock rb-fix">
+          <h4>THE FIX</h4>
+          <div class="code" style="margin:8px 0 0;">
+            <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">fixed.py</span></div>
+<pre><code><span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(max_iterations):   <span class="c"># backstop only</span>
+    resp <span class="k">=</span> client.messages.<span class="f">create</span>(...)
+    messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"assistant"</span>, <span class="s">"content"</span>: resp.content})
+    <span class="k">if</span> resp.stop_reason <span class="k">!=</span> <span class="s">"tool_use"</span>:   <span class="c"># real exit</span>
+        <span class="k">return</span> resp
+    <span class="c"># ... run tools, append results, continue</span></code></pre>
+          </div>
+        </div>
+        <div class="family">FAMILY: <span>anything-but-stop_reason (cap-as-primary-stop)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CARD 3 ============ -->
+  <div class="card" id="card3">
+    <div class="card-head">
+      <span class="card-num">03</span>
+      <span class="card-title">Assistant text means "finished"</span>
+    </div>
+    <div class="card-body">
+      <p class="card-intro">Subtle cousin of #1. It does not match keywords, it checks whether the model produced any text. Decide.</p>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">loop_c.py</span></div>
+<pre><code><span class="k">while</span> <span class="k">True</span>:
+    resp <span class="k">=</span> client.messages.<span class="f">create</span>(model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,
+        max_tokens<span class="k">=</span><span class="n">1024</span>, tools<span class="k">=</span>tools, messages<span class="k">=</span>messages)
+    messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"assistant"</span>, <span class="s">"content"</span>: resp.content})
+
+    <span class="c"># if the model wrote any text block, assume it's answering = done</span>
+<span class="bug-line">    has_text <span class="k">=</span> <span class="f">any</span>(b.type <span class="k">==</span> <span class="s">"text"</span> <span class="k">for</span> b <span class="k">in</span> resp.content)</span>
+<span class="bug-line">    <span class="k">if</span> has_text:</span>
+<span class="bug-line">        <span class="k">break</span></span>
+    <span class="c"># else run tools and loop</span></code></pre>
+      </div>
+
+      <div class="gate" data-card="3">
+        <div class="q">Does this loop terminate correctly?</div>
+        <div class="gate-btns">
+          <button class="gate-btn yes" data-answer="yes">YES, it's fine</button>
+          <button class="gate-btn no" data-answer="no">NO, it's broken</button>
+        </div>
+        <div class="gate-feedback"><span class="verdict"></span></div>
+      </div>
+
+      <div class="reveal">
+        <div class="rblock rb-trap">
+          <h4>WHY IT LOOKS RIGHT</h4>
+          <p>It inspects the response structure instead of parsing keywords, which feels more rigorous than #1. "The model wrote a sentence, so it must be answering" sounds logical, and it sidesteps the brittle string matching.</p>
+        </div>
+        <div class="rblock rb-break">
+          <h4>WHAT BREAKS IT</h4>
+          <p>The model regularly emits a text block <span class="glow-dg">and</span> a <code>tool_use</code> block in the same response: it narrates its plan ("Let me look up that order") while also requesting the tool. This loop sees the text, breaks, and never runs the tool the model asked for. Presence of text is not the same as the turn being over. Only <code>stop_reason</code> tells you whether the model still wants a tool executed.</p>
+        </div>
+        <div class="rblock rb-fix">
+          <h4>THE FIX</h4>
+          <div class="code" style="margin:8px 0 0;">
+            <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">fixed.py</span></div>
+<pre><code><span class="k">if</span> resp.stop_reason <span class="k">==</span> <span class="s">"end_turn"</span>:   <span class="c"># turn is actually over</span>
+    <span class="k">break</span>
+<span class="c"># a text block can coexist with a tool_use block; ignore text as a signal</span></code></pre>
+          </div>
+        </div>
+        <div class="family">FAMILY: <span>anything-but-stop_reason (assistant-text-as-completion)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CARD 4 ============ -->
+  <div class="card" id="card4">
+    <div class="card-head">
+      <span class="card-num">04</span>
+      <span class="card-title">The correct one</span>
+    </div>
+    <div class="card-body">
+      <p class="card-intro">Not every snippet is a trap. On the exam, one option is right, and you must confirm it as confidently as you reject the others. Decide.</p>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">loop_d.py</span></div>
+<pre><code>messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: <span class="s">"Where is order A-4471?"</span>}]
+
+<span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(max_iterations):           <span class="c"># backstop</span>
+    resp <span class="k">=</span> client.messages.<span class="f">create</span>(model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,
+        max_tokens<span class="k">=</span><span class="n">1024</span>, tools<span class="k">=</span>tools, messages<span class="k">=</span>messages)
+    messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"assistant"</span>, <span class="s">"content"</span>: resp.content})
+
+    <span class="k">if</span> resp.stop_reason <span class="k">!=</span> <span class="s">"tool_use"</span>:    <span class="c"># authoritative exit</span>
+        <span class="k">return</span> resp
+
+    tool_results <span class="k">=</span> <span class="f">run_tools</span>(resp)
+    messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: tool_results})</code></pre>
+      </div>
+
+      <div class="gate" data-card="4">
+        <div class="q">Does this loop terminate correctly?</div>
+        <div class="gate-btns">
+          <button class="gate-btn yes" data-answer="yes">YES, it's correct</button>
+          <button class="gate-btn no" data-answer="no">NO, it's broken</button>
+        </div>
+        <div class="gate-feedback"><span class="verdict"></span></div>
+      </div>
+
+      <div class="reveal">
+        <div class="rblock rb-fix">
+          <h4>WHY IT'S CORRECT</h4>
+          <p>Termination is driven by <code>stop_reason</code>: the loop exits the instant the model stops requesting tools. The <code>range(max_iterations)</code> is present only as a backstop against a runaway loop, not as the decision-maker. Tool results are appended back to <code>messages</code> so the model reasons about the next action. Every line earns its place.</p>
+        </div>
+        <div class="rblock rb-trap">
+          <h4>THE TRAP ON THE EXAM</h4>
+          <p>Because it has a <code>range()</code> just like the broken #2, a rushed reader can lump it in with the cap anti-pattern and reject it. The difference is the <code>stop_reason</code> check inside the loop. The cap here never decides completion; it only catches the pathological case. Confirming the right answer requires reading <span class="glow-lm">why</span> the cap is there, not just <span class="glow-dg">that</span> it is there.</p>
+        </div>
+        <div class="family">FAMILY: <span>none. this is the target pattern</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE TELL -->
+  <section class="tells">
+    <div class="sec-num">// THE TELL</div>
+    <h2>One Signal Per Pattern</h2>
+    <p class="lead">Under time pressure you will not re-derive each failure. You will pattern-match on a single tell. Memorize the left column; it is what disqualifies an option in one read.</p>
+    <table class="tells-tbl">
+      <thead>
+        <tr><th>The tell</th><th>Pattern</th><th>Why it fails</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>if "..." in text</code></td>
+          <td>Parsing language for "done"</td>
+          <td>Prose is not a contract; false stops and missed stops both happen.</td>
+        </tr>
+        <tr>
+          <td><code>range(N)</code> with no <code>stop_reason</code> check</td>
+          <td>Cap as the brake</td>
+          <td>Never asks the model if it is finished; cuts off or overruns.</td>
+        </tr>
+        <tr>
+          <td><code>if has_text: break</code></td>
+          <td>Text means finished</td>
+          <td>Text and <code>tool_use</code> coexist in one response; tool never runs.</td>
+        </tr>
+        <tr>
+          <td><code>stop_reason != "tool_use"</code> drives the exit</td>
+          <td class="glow-lm" style="color:var(--neon-lime)!important;font-weight:700;">CORRECT</td>
+          <td>Authoritative completion signal; cap is backstop only.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- NECESSARY BUT NOT SUFFICIENT -->
+  <div class="nse">
+    <h3>// A PAGE IS NOT ENOUGH</h3>
+    <p>Be honest with yourself about what this page can and cannot do. A single anti-pattern page is <b>necessary but not sufficient</b>. The recognition reflex only sticks with repeated exposure to <b>novel</b> distractors, which comes from flashcards and spaced re-quizzing, not from one page read once.</p>
+
+    <div class="pair">
+      <div class="pc teach">
+        <h4>THIS PAGE</h4>
+        <p>The teaching artifact. It shows you the pattern and explains why it fails. You learn the four shapes and the tell for each.</p>
+      </div>
+      <div class="pc drill">
+        <h4>YOUR FLASHCARDS</h4>
+        <p>The drilling artifact. They make you spot the pattern again, cold, in a context you have not seen. That is what builds transfer.</p>
+      </div>
+    </div>
+
+    <p>They work as a pair. If you study this page and stop, you will know the four patterns <b>by name</b> and still get caught by a fifth variation the exam invents. The shapes here are not exhaustive; they are the seeds. Real questions will reword them, combine them, and bury them in scenarios.</p>
+
+    <p class="verdict-line">The page alone is ~60% of the gap. The page plus drilling on fresh distractors is the whole thing.</p>
+  </div>
+
+  <footer>
+    AGENTIC LOOP ANTI-PATTERNS // recognition drill // study artifact only, no code execution<span class="blink"></span>
+  </footer>`;
+---
+
+<StudyLayout title="Anti-Patterns">
+  <div class="wrap" set:html={bodyHtml}></div>
+</StudyLayout>
+
+<style is:global>
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px 120px;position:relative;z-index:1;}
+
+  /* HEADER */
+  header{padding:90px 0 50px;border-bottom:1px solid var(--panel-line);}
+  .kicker{font-family:var(--crt);font-size:1.5rem;color:var(--danger);letter-spacing:4px;text-shadow:0 0 12px rgba(255,59,107,0.6);margin-bottom:10px;}
+  h1{
+    font-family:var(--crt);font-size:clamp(2.6rem,8vw,6rem);line-height:0.92;color:var(--danger);
+    text-shadow:0 0 18px rgba(255,59,107,0.7),4px 4px 0 rgba(255,43,214,0.35);letter-spacing:2px;text-transform:uppercase;
+  }
+  .subtitle{margin-top:22px;max-width:680px;color:var(--text-dim);font-size:0.95rem;}
+  
+  
+
+  /* INTRO BANNER */
+  .intro{
+    margin:48px 0;border:1px solid var(--neon-amber);
+    background:linear-gradient(180deg,rgba(255,182,39,0.06),rgba(255,182,39,0.01));
+    padding:28px 30px;box-shadow:0 0 30px rgba(255,182,39,0.12),inset 0 0 30px rgba(255,182,39,0.04);position:relative;
+  }
+  .intro .tag{position:absolute;top:-11px;left:24px;background:var(--bg-deep);padding:0 10px;font-family:var(--crt);font-size:1.2rem;color:var(--neon-amber);letter-spacing:3px;text-shadow:0 0 10px rgba(255,182,39,0.7);}
+  .intro .big{font-size:1.12rem;color:#fff;line-height:1.5;font-weight:700;}
+  .intro .big b{color:var(--danger);text-shadow:0 0 10px rgba(255,59,107,0.5);}
+  .intro .sub{margin-top:8px;font-size:0.86rem;color:var(--text-dim);font-weight:400;}
+
+  /* THE RULE */
+  .rule{
+    margin:30px 0 10px;border-left:3px solid var(--neon-lime);background:rgba(157,255,60,0.05);
+    padding:16px 20px;font-size:0.95rem;
+  }
+  .rule b{color:var(--neon-lime);}
+  .rule code{color:var(--neon-cyan);}
+
+  /* CARD (anti-pattern) */
+  .card{
+    margin:40px 0;border:1px solid var(--panel-line);background:var(--panel);
+    box-shadow:0 0 24px rgba(0,0,0,0.4);
+  }
+  .card-head{
+    padding:18px 22px;border-bottom:1px solid var(--panel-line);
+    display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  }
+  .card-num{font-family:var(--crt);font-size:2rem;color:var(--danger);text-shadow:0 0 12px rgba(255,59,107,0.6);line-height:1;}
+  .card-title{font-family:var(--crt);font-size:1.6rem;color:var(--text);letter-spacing:1px;text-transform:uppercase;line-height:1;}
+  .card-
+  .card-intro{color:var(--text-dim);font-size:0.9rem;margin-bottom:8px;}
+
+  /* CODE */
+  .code{border:1px solid var(--panel-line);background:var(--bg);margin:14px 0;}
+  .code-bar{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--panel-line);background:var(--panel);}
+  .dot{width:11px;height:11px;border-radius:50%;}
+  .dot.r{background:var(--danger);box-shadow:0 0 8px var(--danger);}
+  .dot.y{background:var(--neon-amber);box-shadow:0 0 8px var(--neon-amber);}
+  .dot.g{background:var(--neon-lime);box-shadow:0 0 8px var(--neon-lime);}
+  .code-bar .fname{margin-left:8px;font-size:0.76rem;color:var(--text-dim);letter-spacing:1px;}
+  .code pre{margin:0;padding:18px 20px;overflow-x:auto;font-size:0.82rem;line-height:1.65;tab-size:4;}
+  .code pre code{font-family:var(--mono);color:var(--text);}
+  .k{color:var(--neon-magenta);} .s{color:var(--neon-lime);} .c{color:var(--text-dim);font-style:italic;}
+  .f{color:var(--neon-cyan);} .n{color:var(--neon-amber);}
+  .bug-line{background:rgba(255,59,107,0.12);border-left:2px solid var(--danger);display:block;margin:0 -20px;padding:0 20px 0 18px;}
+
+  /* COMMIT GATE */
+  .gate{
+    margin:18px 0;padding:18px 20px;border:1px dashed var(--neon-cyan);background:rgba(25,240,255,0.04);
+    text-align:center;
+  }
+  .gate .q{font-family:var(--crt);font-size:1.4rem;color:var(--neon-cyan);letter-spacing:2px;margin-bottom:14px;text-shadow:0 0 8px rgba(25,240,255,0.4);}
+  .gate-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+  .gate-btn{
+    font-family:var(--crt);font-size:1.3rem;letter-spacing:2px;padding:9px 26px;background:transparent;
+    border:1px solid var(--text-dim);color:var(--text-dim);cursor:pointer;text-transform:uppercase;transition:.15s;
+  }
+  .gate-btn:hover{color:var(--text);border-color:var(--text);}
+  .gate-btn.yes:hover{color:var(--neon-lime);border-color:var(--neon-lime);box-shadow:0 0 14px rgba(157,255,60,0.3);}
+  .gate-btn.no:hover{color:var(--danger);border-color:var(--danger);box-shadow:0 0 14px rgba(255,59,107,0.3);}
+  .gate-feedback{margin-top:14px;font-size:0.86rem;display:none;}
+  .gate-feedback.show{display:block;}
+  .gate-feedback .verdict{font-family:var(--crt);font-size:1.3rem;letter-spacing:1px;}
+  .gate-feedback.correct .verdict{color:var(--neon-lime);text-shadow:0 0 8px rgba(157,255,60,0.4);}
+  .gate-feedback.wrong .verdict{color:var(--danger);text-shadow:0 0 8px rgba(255,59,107,0.4);}
+
+  /* REVEAL */
+  .reveal{display:none;margin-top:6px;}
+  .reveal.show{display:block;animation:fade .4s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .rblock{margin:16px 0;padding:14px 18px;border-left:2px solid;}
+  .rblock h4{font-family:var(--crt);font-size:1.25rem;letter-spacing:2px;margin-bottom:6px;}
+  .rblock p{font-size:0.88rem;}
+  .rblock code{font-size:0.82rem;}
+  .rb-trap{border-color:var(--neon-amber);background:rgba(255,182,39,0.04);}
+  .rb-trap h4{color:var(--neon-amber);}
+  .rb-break{border-color:var(--danger);background:rgba(255,59,107,0.04);}
+  .rb-break h4{color:var(--danger);}
+  .rb-break code{color:var(--neon-amber);}
+  .rb-fix{border-color:var(--neon-lime);background:rgba(157,255,60,0.04);}
+  .rb-fix h4{color:var(--neon-lime);}
+
+  .family{
+    margin-top:14px;display:inline-block;font-family:var(--crt);font-size:1.1rem;letter-spacing:1px;
+    color:var(--neon-magenta);border:1px solid var(--neon-magenta);padding:4px 12px;
+    text-shadow:0 0 8px rgba(255,43,214,0.4);
+  }
+  .family span{color:var(--text-dim);text-shadow:none;}
+
+  /* THE TELL CHEAT SHEET */
+  section.tells{padding:64px 0 0;border-top:1px dashed var(--panel-line);margin-top:60px;}
+  .sec-num{font-family:var(--crt);font-size:1.4rem;color:var(--neon-lime);letter-spacing:3px;text-shadow:0 0 10px rgba(157,255,60,0.5);}
+  h2{font-family:var(--crt);font-size:clamp(1.8rem,4vw,2.8rem);color:var(--text);text-transform:uppercase;letter-spacing:1px;margin:6px 0 18px;line-height:1;}
+  .lead{color:var(--text-dim);max-width:680px;margin-bottom:18px;font-size:0.92rem;}
+  table.tells-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.86rem;}
+  table.tells-tbl th,table.tells-tbl td{border:1px solid var(--panel-line);padding:12px 14px;text-align:left;vertical-align:top;}
+  table.tells-tbl th{font-family:var(--crt);font-size:1.2rem;letter-spacing:2px;color:var(--neon-cyan);background:var(--panel);}
+  table.tells-tbl td code{color:var(--neon-amber);}
+  table.tells-tbl tr td:first-child{color:var(--danger);font-weight:700;}
+
+  /* NOT SUFFICIENT */
+  .nse{
+    margin-top:60px;border:1px solid var(--neon-magenta);
+    background:linear-gradient(180deg,rgba(255,43,214,0.06),transparent);
+    padding:28px 30px;box-shadow:0 0 26px rgba(255,43,214,0.1);
+  }
+  .nse h3{font-family:var(--crt);font-size:1.7rem;color:var(--neon-magenta);letter-spacing:2px;text-shadow:0 0 10px rgba(255,43,214,0.5);margin-bottom:14px;}
+  .nse p{font-size:0.92rem;margin:12px 0;}
+  .nse b{color:var(--neon-cyan);}
+  .nse .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0;}
+  @media(max-width:680px){.nse .pair{grid-template-columns:1fr;}}
+  .nse .pc{border:1px solid var(--panel-line);background:var(--panel);padding:16px 18px;}
+  .nse .pc h4{font-family:var(--crt);font-size:1.3rem;letter-spacing:1px;margin-bottom:6px;}
+  .nse .pc.teach h4{color:var(--neon-cyan);}
+  .nse .pc.drill h4{color:var(--neon-lime);}
+  .nse .pc p{font-size:0.84rem;color:var(--text-dim);margin:0;}
+  .nse .verdict-line{font-family:var(--crt);font-size:1.3rem;color:var(--neon-amber);letter-spacing:1px;margin-top:16px;text-shadow:0 0 8px rgba(255,182,39,0.4);}
+
+  footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--panel-line);color:var(--text-dim);font-size:0.78rem;text-align:center;letter-spacing:1px;}
+  .glow-cy{color:var(--neon-cyan);} .glow-lm{color:var(--neon-lime);} .glow-am{color:var(--neon-amber);} .glow-dg{color:var(--danger);}
+</style>
+
+<script is:inline>
+(function(){
+  // Correct answer per card: card 1,2,3 are BROKEN (answer "no"); card 4 is CORRECT (answer "yes").
+  var answers = { "1":"no", "2":"no", "3":"no", "4":"yes" };
+
+  document.querySelectorAll('.gate').forEach(function(gate){
+    var card = gate.getAttribute('data-card');
+    var correct = answers[card];
+    var feedback = gate.querySelector('.gate-feedback');
+    var verdict = feedback.querySelector('.verdict');
+    var reveal = gate.closest('.card-body').querySelector('.reveal');
+
+    gate.querySelectorAll('.gate-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var picked = btn.getAttribute('data-answer');
+        var right = picked === correct;
+
+        feedback.classList.remove('correct','wrong');
+        feedback.classList.add('show', right ? 'correct' : 'wrong');
+
+        if(right){
+          verdict.textContent = card === "4"
+            ? "✓ CORRECT, and you confirmed it instead of second-guessing."
+            : "✓ CORRECT. You flagged the break.";
+        } else {
+          verdict.textContent = card === "4"
+            ? "✗ WRONG. This one is actually correct, see why below."
+            : "✗ WRONG. It looks fine, but it's broken, see why below.";
+        }
+
+        // reveal the explanation either way; the point is to commit first, then learn.
+        reveal.classList.add('show');
+
+        // lock buttons after answering
+        gate.querySelectorAll('.gate-btn').forEach(function(b){
+          b.style.opacity = (b===btn) ? "1" : "0.4";
+          b.style.pointerEvents = "none";
+        });
+      });
+    });
+  });
+})();
+</script>

@@ -1,0 +1,400 @@
+---
+import StudyLayout from '../../../layouts/StudyLayout.astro';
+const bodyHtml = `<header>
+    <div class="kicker">// CCA-F FIELD MANUAL : DOMAIN 1.1</div>
+    <h1>Who Decides<br>What's Next?</h1>
+    <p class="subtitle">You can build a loop that calls a tool. But once it is running, how does Claude know <i>which</i> tool to call, and in what order? There are two possible answers, and the difference between them is one of the most important ideas in agent design.<span class="blink"></span></p>
+  </header>
+
+  <!-- QUESTION -->
+  <div class="qbanner">
+    <span class="tag">▶ THE QUESTION</span>
+    <p class="big">When a task takes several tool calls, something has to decide the order. Either <b>the model decides</b>, step by step, or <b>your code decides</b>, in advance.</p>
+    <p class="sub">This page shows the first half (how the model decides) by following a real chain, then puts both approaches side by side so you can see exactly where they differ.</p>
+  </div>
+
+  <!-- PART 1: FOLLOW THE RESULT -->
+  <section id="chain">
+    <div class="sec-num">PART 01</div>
+    <h2>Follow the Result Through the Loop</h2>
+    <p class="lead">Here is a support request that needs more than one tool: <span class="glow-am">"I want a refund for my late order."</span> Watch what happens. Click <b class="glow-lm">NEXT STEP</b> and notice that each tool the model picks depends on what the <i>previous</i> result told it. The conversation on the right grows as results come back.</p>
+
+    <div class="chain">
+      <!-- steps -->
+      <div class="chain-steps" id="chainSteps">
+        <div class="cstep" data-step="0">
+          <div class="ct">STEP 1 &middot; calls <span class="tool">get_customer</span></div>
+          <div class="result">Result: customer found, tier = <b>premium</b>, account in good standing.</div>
+          <div class="reason"><b>Why this tool?</b> The model has no customer info yet, so before it can judge a refund it looks up who is asking.</div>
+        </div>
+        <div class="cstep" data-step="1">
+          <div class="ct">STEP 2 &middot; calls <span class="tool">lookup_order</span></div>
+          <div class="result">Result: order delivered 6 days late, marked "delayed in transit".</div>
+          <div class="reason"><b>Why this tool, now?</b> Because the result of Step 1 said the customer is real and premium, the model moves on to check the order they are complaining about. It read the first result and chose accordingly.</div>
+        </div>
+        <div class="cstep" data-step="2">
+          <div class="ct">STEP 3 &middot; calls <span class="tool">process_refund</span></div>
+          <div class="result">Result: refund of $42.00 issued, confirmation #RF-9920.</div>
+          <div class="reason"><b>Why this tool, now?</b> The order really was late (Step 2 result) and the customer is premium (Step 1 result). The model combined both facts and decided a refund is warranted. A different result, say "delivered on time", would have led it somewhere else entirely.</div>
+        </div>
+        <div class="cstep" data-step="3">
+          <div class="ct">STEP 4 &middot; <span class="tool">answers the customer</span></div>
+          <div class="result">No tool requested. The model writes the reply and the loop ends.</div>
+          <div class="reason"><b>Why stop?</b> It has everything it needs. It stops asking for tools and responds, which is the loop's natural exit.</div>
+        </div>
+      </div>
+
+      <!-- conversation panel -->
+      <div class="chain-panel">
+        <div class="convo">
+          <div class="convo-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">messages &nbsp;<span id="msgCount" style="color:var(--neon-cyan)"></span></span></div>
+          <div class="convo-body" id="convoBody">
+            <div class="convo-empty">The conversation starts with the customer's request. Click NEXT STEP to watch tool results come back and shape the model's next decision.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="ctl" id="nextBtn">Next Step ▸</button>
+      <button class="ctl ghost" id="resetBtn">↺ Reset</button>
+      <span class="progress" id="chainProgress">0 / 4</span>
+    </div>
+
+    <div class="takeaway">
+      <b>The point:</b> the model did not follow a fixed script. At each step it read the most recent tool result, which had been added back into the conversation, and used it to reason about what to do next. That is what "tool results appended so the model reasons about the next action" actually means. The results are not just stored; they are <i>fuel for the next decision</i>.
+    </div>
+  </section>
+
+  <!-- PART 2: TWO WAYS -->
+  <section id="ways">
+    <div class="sec-num">PART 02</div>
+    <h2>The Two Ways to Decide</h2>
+    <p class="lead">The chain you just watched is the <span class="glow-cy">model-driven</span> approach: Claude reasons about which tool to call next. The other approach is a <span class="glow-mg">decision tree</span>, where you write the order into your own code ahead of time. Here is the same refund task, built both ways.</p>
+
+    <div class="ways">
+      <div class="way driven">
+        <div class="way-head">
+          <div class="wt">Model-Driven</div>
+          <div class="ws">The model picks the next tool from context.</div>
+        </div>
+        <div class="way-body">
+<pre><code><span class="c"># You give Claude the tools and let it decide.</span>
+tools <span class="k">=</span> [get_customer, lookup_order,
+         process_refund, escalate]
+
+<span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(max_iterations):
+    resp <span class="k">=</span> client.messages.<span class="f">create</span>(
+        model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,
+        tools<span class="k">=</span>tools, messages<span class="k">=</span>messages)
+    <span class="k">if</span> resp.stop_reason <span class="k">!=</span> <span class="s">"tool_use"</span>:
+        <span class="k">break</span>
+    <span class="c"># Claude chose the tool. You just run it.</span>
+    results <span class="k">=</span> <span class="f">run_tools</span>(resp)
+    messages.<span class="f">append</span>(results)</code></pre>
+        </div>
+        <div class="way-note">Your code never names a specific tool. It runs <b>whatever the model asked for</b>. The order emerges from the model's reasoning.</div>
+      </div>
+
+      <div class="way tree">
+        <div class="way-head">
+          <div class="wt">Decision Tree</div>
+          <div class="ws">Your code picks the tools, in a fixed order.</div>
+        </div>
+        <div class="way-body">
+<pre><code><span class="c"># You write the steps yourself, in advance.</span>
+customer <span class="k">=</span> <span class="f">get_customer</span>(customer_id)
+
+<span class="k">if</span> customer.tier <span class="k">==</span> <span class="s">"premium"</span>:
+    order <span class="k">=</span> <span class="f">lookup_order</span>(order_id)
+    <span class="k">if</span> order.days_late <span class="k">&gt;</span> <span class="n">3</span>:
+        <span class="f">process_refund</span>(order_id)
+    <span class="k">else</span>:
+        <span class="f">escalate</span>(order_id)
+<span class="k">else</span>:
+    <span class="f">escalate</span>(order_id)
+<span class="c"># Every path is decided by you, not the model.</span></code></pre>
+        </div>
+        <div class="way-note">Your code names <b>every tool and every branch</b>. The model is not deciding anything; you encoded the logic by hand.</div>
+      </div>
+    </div>
+
+    <table class="cmp">
+      <thead>
+        <tr><th>&nbsp;</th><th>Model-Driven</th><th>Decision Tree</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Who chooses the next tool?</td><td>The model, from context</td><td>Your code, written ahead of time</td></tr>
+        <tr><td>Handles cases you didn't foresee?</td><td>Yes, it reasons about new situations</td><td>No, only the branches you wrote</td></tr>
+        <tr><td>Order of tool calls</td><td>Emerges step by step</td><td>Fixed in your code</td></tr>
+        <tr><td>Predictability</td><td>Lower; depends on the model</td><td>Higher; fully determined by you</td></tr>
+        <tr><td>Effort to add a new case</td><td>Often none; describe the tool well</td><td>Write a new branch by hand</td></tr>
+        <tr><td>Best when</td><td>The path depends on data you can't know in advance</td><td>The path is fixed, known, and must be exact</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- PART 3: THE TRAP -->
+  <section id="trap-sec">
+    <div class="sec-num">PART 03</div>
+    <h2>Model-Driven Is Not Chaos</h2>
+    <div class="trap">
+      <h3>// THE BEGINNER MISREAD</h3>
+      <p><span class="myth">The myth:</span> "If the model decides, then I have given up control and anything could happen."</p>
+      <p><span class="truth">The truth:</span> the model only ever chooses from <b>the tools you gave it</b>. If you never provide a <span class="glow-am">delete_account</span> tool, the model cannot delete an account, no matter what it reasons. You set the boundaries; the model reasons <i>within</i> them.</p>
+      <p>Think of it like hiring a capable assistant and handing them a specific set of keys. They decide which door to open and when, based on the situation, but they can only open doors you gave them keys to. Model-driven means the model picks the <i>sequence</i>, not that it has unlimited power.</p>
+      <p>So the real choice is not "control vs no control." It is <b>"who decides the order within the limits I set"</b>: the model, reasoning from each result, or your code, following branches you wrote.</p>
+    </div>
+  </section>
+
+  <!-- PART 4: WHEN TO PICK -->
+  <section id="pick-sec">
+    <div class="sec-num">PART 04</div>
+    <h2>When to Pick Which</h2>
+    <p class="lead">Neither is "better." They fit different jobs. Use the side that matches how predictable the path is.</p>
+    <div class="pick">
+      <div class="pcol driven">
+        <h3>Reach for Model-Driven when</h3>
+        <ul>
+          <li>The next step depends on data you cannot know until you see it (most real agent work).</li>
+          <li>Requests are open-ended or ambiguous, like customer support, research, or exploration.</li>
+          <li>There are too many possible paths to write branches for all of them.</li>
+          <li>You want to add new capabilities by adding tools, not by rewriting control logic.</li>
+        </ul>
+      </div>
+      <div class="pcol tree">
+        <h3>Reach for a Decision Tree when</h3>
+        <ul>
+          <li>The flow is fixed and known every time, like a fixed onboarding sequence.</li>
+          <li>You need the exact same steps in the exact same order, with no variation.</li>
+          <li>The cost of an unexpected action is too high to allow any flexibility.</li>
+          <li>The logic is simple enough that hand-writing it is clearer than letting the model reason.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECAP -->
+  <section id="recap">
+    <div class="recap">
+      <h3>// LOCK IT IN</h3>
+      <ul>
+        <li><b>Tool results are fuel, not just storage.</b> Each result is appended back into the conversation so the model can read it and reason about what to do next. Remove that feedback and the model is deciding blind.</li>
+        <li><b>Model-driven means the model picks the sequence.</b> You provide the tools; Claude reasons, step by step, about which one to call next based on what it has learned so far. A decision tree is the opposite: your code hardcodes the order in advance.</li>
+        <li><b>Model-driven is bounded, not boundless.</b> The model can only choose from the tools you gave it. You set the limits; it reasons within them. Pick model-driven when the path depends on data you can't predict, and a decision tree when the path is fixed and must be exact.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    WHO DECIDES WHAT'S NEXT? // model-driven decisions &amp; tool-result reasoning // study artifact only, no code execution<span class="blink"></span>
+  </footer>`;
+---
+
+<StudyLayout title="Who Decides What's Next?">
+  <div class="wrap" set:html={bodyHtml}></div>
+</StudyLayout>
+
+<style is:global>
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px 120px;position:relative;z-index:1;}
+
+  /* HEADER */
+  header{padding:90px 0 50px;border-bottom:1px solid var(--panel-line);}
+  .kicker{font-family:var(--crt);font-size:1.5rem;color:var(--neon-lime);letter-spacing:4px;text-shadow:0 0 12px rgba(157,255,60,0.6);margin-bottom:10px;}
+  h1{font-family:var(--crt);font-size:clamp(2.4rem,7.5vw,5.5rem);line-height:0.95;color:var(--neon-lime);text-shadow:0 0 18px rgba(157,255,60,0.6),4px 4px 0 rgba(25,240,255,0.3);letter-spacing:2px;text-transform:uppercase;}
+  .subtitle{margin-top:22px;max-width:680px;color:var(--text-dim);font-size:0.95rem;}
+  
+  
+
+  /* QUESTION BANNER */
+  .qbanner{margin:48px 0;border:1px solid var(--neon-lime);background:linear-gradient(180deg,rgba(157,255,60,0.06),rgba(157,255,60,0.01));padding:28px 30px;box-shadow:0 0 30px rgba(157,255,60,0.12),inset 0 0 30px rgba(157,255,60,0.04);position:relative;}
+  .qbanner .tag{position:absolute;top:-11px;left:24px;background:var(--bg-deep);padding:0 10px;font-family:var(--crt);font-size:1.2rem;color:var(--neon-lime);letter-spacing:3px;text-shadow:0 0 10px rgba(157,255,60,0.7);}
+  .qbanner .big{font-size:1.12rem;color:#fff;line-height:1.5;font-weight:700;}
+  .qbanner .big b{color:var(--neon-cyan);text-shadow:0 0 10px rgba(25,240,255,0.5);}
+  .qbanner .sub{margin-top:8px;font-size:0.86rem;color:var(--text-dim);font-weight:400;}
+
+  /* SECTIONS */
+  section{padding:64px 0 0;}
+  .sec-num{font-family:var(--crt);font-size:1.4rem;color:var(--neon-cyan);letter-spacing:3px;text-shadow:0 0 10px rgba(25,240,255,0.5);}
+  h2{font-family:var(--crt);font-size:clamp(1.8rem,4vw,2.8rem);color:var(--text);text-transform:uppercase;letter-spacing:1px;margin:6px 0 16px;line-height:1;}
+  .lead{color:var(--text-dim);max-width:700px;margin-bottom:14px;font-size:0.93rem;}
+  p{font-size:0.93rem;}
+  p+p{margin-top:10px;}
+  .glow-cy{color:var(--neon-cyan);} .glow-lm{color:var(--neon-lime);} .glow-am{color:var(--neon-amber);} .glow-mg{color:var(--neon-magenta);} .glow-dg{color:var(--danger);}
+
+  /* CHAIN WALKER */
+  .chain{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start;}
+  @media(max-width:860px){.chain{grid-template-columns:1fr;}}
+  .chain-steps{display:flex;flex-direction:column;gap:12px;}
+  .cstep{border:1px solid var(--panel-line);background:var(--panel);padding:16px 18px;opacity:0.35;filter:grayscale(0.6);transition:all .35s ease;}
+  .cstep.active{opacity:1;filter:none;border-color:var(--neon-lime);box-shadow:0 0 18px rgba(157,255,60,0.18);}
+  .cstep.done{opacity:0.9;border-color:var(--neon-cyan);}
+  .cstep .ct{font-family:var(--crt);font-size:1.2rem;color:var(--neon-lime);letter-spacing:1px;}
+  .cstep.done .ct{color:var(--neon-cyan);}
+  .cstep .tool{color:var(--neon-amber);font-weight:700;}
+  .cstep .result{font-size:0.82rem;color:var(--text-dim);margin-top:4px;}
+  .cstep .reason{font-size:0.84rem;color:var(--text);margin-top:8px;border-left:2px solid var(--neon-lime);padding-left:10px;}
+  .cstep .reason b{color:var(--neon-lime);}
+
+  .chain-panel{position:sticky;top:20px;}
+  .convo{border:1px solid var(--neon-cyan);background:var(--bg);box-shadow:0 0 26px rgba(25,240,255,0.12);min-height:360px;}
+  .convo-bar{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid #1d3a4a;background:var(--panel);}
+  .dot{width:11px;height:11px;border-radius:50%;}
+  .dot.r{background:var(--danger);box-shadow:0 0 8px var(--danger);}
+  .dot.y{background:var(--neon-amber);box-shadow:0 0 8px var(--neon-amber);}
+  .dot.g{background:var(--neon-lime);box-shadow:0 0 8px var(--neon-lime);}
+  .convo-bar .fname{margin-left:8px;font-size:0.76rem;color:var(--text-dim);letter-spacing:1px;}
+  .convo-
+  .msg{margin:0 0 10px;padding:8px 12px;border-radius:3px;}
+  .msg .role{font-family:var(--crt);font-size:1rem;letter-spacing:1px;display:block;margin-bottom:3px;}
+  .msg.user{background:rgba(255,182,39,0.06);border-left:2px solid var(--neon-amber);}
+  .msg.user .role{color:var(--neon-amber);}
+  .msg.assistant{background:rgba(25,240,255,0.06);border-left:2px solid var(--neon-cyan);}
+  .msg.assistant .role{color:var(--neon-cyan);}
+  .msg.tool{background:rgba(157,255,60,0.06);border-left:2px solid var(--neon-lime);}
+  .msg.tool .role{color:var(--neon-lime);}
+  .msg code{color:var(--neon-amber);}
+  .convo-empty{color:var(--text-dim);font-style:italic;padding:16px 0;}
+
+  .controls{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  button.ctl{font-family:var(--crt);font-size:1.25rem;letter-spacing:2px;padding:10px 22px;background:transparent;color:var(--neon-lime);border:1px solid var(--neon-lime);cursor:pointer;text-transform:uppercase;transition:.18s;text-shadow:0 0 8px rgba(157,255,60,0.4);}
+  button.ctl:hover:not(:disabled){background:var(--neon-lime);color:var(--bg-deep);box-shadow:0 0 22px rgba(157,255,60,0.5);text-shadow:none;}
+  button.ctl.ghost{color:var(--text-dim);border-color:var(--panel-line);text-shadow:none;}
+  button.ctl.ghost:hover:not(:disabled){background:var(--panel-line);color:var(--text);box-shadow:none;}
+  button.ctl:disabled{opacity:0.3;cursor:not-allowed;}
+  .progress{font-family:var(--crt);font-size:1.2rem;color:var(--neon-amber);letter-spacing:2px;margin-left:auto;align-self:center;}
+
+  .takeaway{margin-top:24px;border-left:3px solid var(--neon-lime);background:rgba(157,255,60,0.05);padding:14px 20px;font-size:0.92rem;}
+  .takeaway b{color:var(--neon-lime);}
+
+  /* TWO WAYS */
+  .ways{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px;}
+  @media(max-width:760px){.ways{grid-template-columns:1fr;}}
+  .way{border:1px solid var(--panel-line);background:var(--panel);padding:0;overflow:hidden;}
+  .way-head{padding:14px 18px;border-bottom:1px solid var(--panel-line);}
+  .way-head .wt{font-family:var(--crt);font-size:1.5rem;letter-spacing:1px;line-height:1;}
+  .way-head .ws{font-size:0.8rem;color:var(--text-dim);margin-top:4px;}
+  .way.driven .wt{color:var(--neon-cyan);text-shadow:0 0 8px rgba(25,240,255,0.4);}
+  .way.tree .wt{color:var(--neon-magenta);text-shadow:0 0 8px rgba(255,43,214,0.4);}
+  .way-
+  .way pre{margin:0;padding:16px 18px;overflow-x:auto;font-size:0.78rem;line-height:1.6;tab-size:4;}
+  .way pre code{font-family:var(--mono);color:var(--text);}
+  .k{color:var(--neon-magenta);} .s{color:var(--neon-lime);} .c{color:var(--text-dim);font-style:italic;} .f{color:var(--neon-cyan);} .n{color:var(--neon-amber);}
+  .way-note{padding:12px 18px;border-top:1px solid var(--panel-line);font-size:0.82rem;color:var(--text-dim);}
+  .way.driven .way-note b{color:var(--neon-cyan);}
+  .way.tree .way-note b{color:var(--neon-magenta);}
+
+  /* COMPARISON TABLE */
+  table.cmp{width:100%;border-collapse:collapse;margin-top:24px;font-size:0.86rem;}
+  table.cmp th,table.cmp td{border:1px solid var(--panel-line);padding:12px 14px;text-align:left;vertical-align:top;}
+  table.cmp thead th{font-family:var(--crt);font-size:1.2rem;letter-spacing:1px;background:var(--panel);}
+  table.cmp thead th:nth-child(2){color:var(--neon-cyan);}
+  table.cmp thead th:nth-child(3){color:var(--neon-magenta);}
+  table.cmp tbody td:first-child{color:var(--text-dim);font-style:italic;}
+  table.cmp code{color:var(--neon-amber);}
+
+  /* TRAP CALLOUT */
+  .trap{margin-top:26px;border:1px solid var(--neon-amber);background:linear-gradient(180deg,rgba(255,182,39,0.06),transparent);padding:22px 26px;box-shadow:0 0 24px rgba(255,182,39,0.1);}
+  .trap h3{font-family:var(--crt);font-size:1.5rem;color:var(--neon-amber);letter-spacing:2px;text-shadow:0 0 10px rgba(255,182,39,0.5);margin-bottom:12px;}
+  .trap .myth{color:var(--danger);font-weight:700;}
+  .trap .truth{color:var(--neon-lime);font-weight:700;}
+  .trap p{margin:10px 0;}
+
+  /* WHEN TO PICK */
+  .pick{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px;}
+  @media(max-width:760px){.pick{grid-template-columns:1fr;}}
+  .pcol{border:1px solid var(--panel-line);background:var(--panel);padding:20px;}
+  .pcol h3{font-family:var(--crt);font-size:1.5rem;letter-spacing:1px;margin-bottom:12px;}
+  .pcol.driven h3{color:var(--neon-cyan);}
+  .pcol.tree h3{color:var(--neon-magenta);}
+  .pcol ul{list-style:none;}
+  .pcol li{padding-left:22px;position:relative;margin:9px 0;font-size:0.86rem;}
+  .pcol.driven li::before{content:"▸";position:absolute;left:0;color:var(--neon-cyan);}
+  .pcol.tree li::before{content:"▸";position:absolute;left:0;color:var(--neon-magenta);}
+
+  /* RECAP */
+  .recap{margin-top:60px;border:1px solid var(--neon-lime);background:linear-gradient(180deg,rgba(157,255,60,0.05),transparent);padding:26px 28px;box-shadow:0 0 26px rgba(157,255,60,0.1);}
+  .recap h3{font-family:var(--crt);font-size:1.7rem;color:var(--neon-lime);letter-spacing:2px;text-shadow:0 0 10px rgba(157,255,60,0.5);margin-bottom:14px;}
+  .recap ul{list-style:none;}
+  .recap li{padding-left:26px;position:relative;margin:12px 0;font-size:0.92rem;}
+  .recap li::before{content:"▸";position:absolute;left:0;color:var(--neon-lime);font-size:1.1rem;}
+  .recap b{color:var(--neon-cyan);}
+
+  footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--panel-line);color:var(--text-dim);font-size:0.78rem;text-align:center;letter-spacing:1px;}
+</style>
+
+<script is:inline>
+(function(){
+  // The conversation messages revealed at each step (cumulative).
+  var convo = [
+    // before any step: handled by empty state
+    // step 1
+    [
+      {role:"user", label:"CUSTOMER", html:"I want a refund for my late order."},
+      {role:"assistant", label:"CLAUDE", html:"Let me look up your account first. <span style='color:var(--text-dim)'>(requests <code>get_customer</code>)</span>"},
+      {role:"tool", label:"TOOL RESULT", html:"<code>get_customer</code> &rarr; tier: premium, status: good standing"},
+    ],
+    // step 2
+    [
+      {role:"assistant", label:"CLAUDE", html:"You're a premium customer. Now let me check that order. <span style='color:var(--text-dim)'>(requests <code>lookup_order</code>)</span>"},
+      {role:"tool", label:"TOOL RESULT", html:"<code>lookup_order</code> &rarr; delivered 6 days late, delayed in transit"},
+    ],
+    // step 3
+    [
+      {role:"assistant", label:"CLAUDE", html:"That order was 6 days late. I'll issue a refund. <span style='color:var(--text-dim)'>(requests <code>process_refund</code>)</span>"},
+      {role:"tool", label:"TOOL RESULT", html:"<code>process_refund</code> &rarr; $42.00 refunded, conf #RF-9920"},
+    ],
+    // step 4
+    [
+      {role:"assistant", label:"CLAUDE", html:"Done. I've refunded $42.00 for your late order (confirmation #RF-9920). Sorry for the delay! <span style='color:var(--text-dim)'>(no tool requested, stop_reason = end_turn)</span>"},
+    ],
+  ];
+
+  var TOTAL = 4;
+  var current = 0;
+
+  var stepEls = Array.prototype.slice.call(document.querySelectorAll('.cstep'));
+  var convoBody = document.getElementById('convoBody');
+  var msgCount = document.getElementById('msgCount');
+  var nextBtn = document.getElementById('nextBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var prog = document.getElementById('chainProgress');
+
+  function render(){
+    prog.textContent = current + ' / ' + TOTAL;
+
+    // steps highlight
+    stepEls.forEach(function(s,i){
+      s.classList.remove('active','done');
+      if(i < current) s.classList.add('done');
+      if(i === current - 1) { s.classList.remove('done'); s.classList.add('active'); }
+    });
+
+    // build conversation up to current
+    if(current === 0){
+      convoBody.innerHTML = '<div class="convo-empty">The conversation starts with the customer\'s request. Click NEXT STEP to watch tool results come back and shape the model\'s next decision.</div>';
+      msgCount.textContent = '';
+    } else {
+      var html = '';
+      var count = 0;
+      for(var s=0; s<current; s++){
+        convo[s].forEach(function(m){
+          html += '<div class="msg '+m.role+'"><span class="role">'+m.label+'</span>'+m.html+'</div>';
+          count++;
+        });
+      }
+      convoBody.innerHTML = html;
+      msgCount.textContent = '('+count+' messages)';
+      convoBody.scrollTop = convoBody.scrollHeight;
+    }
+
+    nextBtn.disabled = current >= TOTAL;
+    nextBtn.textContent = current >= TOTAL ? '✓ Task complete' : 'Next Step ▸';
+  }
+
+  nextBtn.addEventListener('click', function(){ if(current < TOTAL){ current++; render(); } });
+  resetBtn.addEventListener('click', function(){ current = 0; render(); });
+
+  render();
+})();
+</script>

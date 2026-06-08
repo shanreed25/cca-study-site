@@ -1,0 +1,140 @@
+---
+import { getCollection } from 'astro:content';
+
+// Pull the navigation collection and sort domains by their order field.
+const domains = (await getCollection('navigation')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+---
+
+<aside class="sidebar" transition:persist>
+  <div class="sidebar-head">
+    <div class="brand">CCA&middot;F</div>
+    <div class="brand-sub">FIELD MANUAL</div>
+    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle light / dark">
+      <span class="tt-icon">◐</span>
+    </button>
+  </div>
+
+  <nav class="nav">
+    {domains.map((domain) => (
+      <div class="domain">
+        <button class="domain-head" data-collapse>
+          <span class="chev">▸</span>
+          <span class="domain-id">D{domain.data.id}</span>
+          <span class="domain-title">{domain.data.domainTitle}</span>
+          <span class="weight">{domain.data.weight}</span>
+        </button>
+
+        <div class="domain-body">
+          {domain.data.tasks.map((task) => (
+            <div class="task">
+              <button class="task-head" data-collapse>
+                <span class="chev">▸</span>
+                <span class="task-id">{task.taskId}</span>
+                <span class="task-title">{task.taskTitle}</span>
+              </button>
+
+              <div class="task-body">
+                {task.pages.length > 0 ? (
+                  task.pages
+                    .sort((a, b) => a.order - b.order)
+                    .map((page) => (
+                      <a class="page-link" href={page.slug} data-slug={page.slug}>
+                        {page.label}
+                      </a>
+                    ))
+                ) : (
+                  <div class="empty">coming soon</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </nav>
+
+  <div class="sidebar-foot">study artifact &middot; no code execution</div>
+</aside>
+
+<script>
+  // Collapse/expand + active-link highlight + theme toggle.
+  // Runs on initial load AND after every View Transition navigation,
+  // because the sidebar is transition:persist (its DOM survives, but we
+  // still re-sync active state and re-bind on fresh page loads).
+
+  function initSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+
+    // --- collapse toggles (bind once via a flag on each button) ---
+    sidebar.querySelectorAll('[data-collapse]').forEach((btn) => {
+      if (btn.dataset.bound === '1') return;
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', () => {
+        const parent = btn.parentElement;
+        parent.classList.toggle('open');
+      });
+    });
+
+    syncActive();
+    expandToActive();
+  }
+
+  // Highlight the link matching the current path, clear others.
+  function syncActive() {
+    const path = window.location.pathname;
+    document.querySelectorAll('.page-link').forEach((link) => {
+      const slug = link.getAttribute('data-slug');
+      link.classList.toggle('active', slug === path);
+    });
+  }
+
+  // Auto-open the domain + task containing the active page.
+  function expandToActive() {
+    const active = document.querySelector('.page-link.active');
+    if (!active) return;
+    let el = active.parentElement; // task-body
+    while (el && !el.classList.contains('sidebar')) {
+      if (el.classList.contains('task') || el.classList.contains('domain')) {
+        el.classList.add('open');
+      }
+      el = el.parentElement;
+    }
+  }
+
+  // --- theme toggle ---
+  function initTheme() {
+    const toggle = document.getElementById('themeToggle');
+    if (!toggle || toggle.dataset.bound === '1') {
+      // even if bound, re-apply current theme after navigation
+      applyTheme(currentTheme());
+      return;
+    }
+    toggle.dataset.bound = '1';
+    toggle.addEventListener('click', () => {
+      const next = currentTheme() === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+    });
+    applyTheme(currentTheme());
+  }
+
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') || 'dark';
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    // No persistence to storage in MVP; defaults to dark each load.
+    // Light theme tokens are deferred to phase 2; toggle is wired and ready.
+  }
+
+  // Run now and after every client-side navigation.
+  initSidebar();
+  initTheme();
+  document.addEventListener('astro:page-load', () => {
+    initSidebar();
+    initTheme();
+  });
+</script>
