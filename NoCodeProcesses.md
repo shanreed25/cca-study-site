@@ -9,7 +9,7 @@ record of every manual action taken across the life of the project.
 
 ## Deployment: Transfer repo from org to personal account, then make public
 
-**Status:** Pending
+**Status:** Complete (2026-06-10)
 
 **What:** Move the repo from the `Build-With-Shannon` GitHub organization to the personal account `shanreed25`, then flip its visibility from Private to Public.
 
@@ -35,7 +35,7 @@ record of every manual action taken across the life of the project.
 
 ## Deployment: Set GitHub Pages source to "GitHub Actions"
 
-**Status:** Pending
+**Status:** Complete (2026-06-10)
 
 **What:** Set the Pages deployment source to "GitHub Actions" on the transferred, public repo.
 
