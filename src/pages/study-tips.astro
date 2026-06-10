@@ -1,0 +1,61 @@
+---
+import StudyLayout from '../layouts/StudyLayout.astro';
+---
+
+<StudyLayout title="Study Tips">
+  <div class="wrap">
+    <div class="kicker">// META</div>
+    <h1>Study Tips</h1>
+    <p class="lead">
+      How to get the most out of the field manual: pacing, repetition, and what to
+      practice hands-on vs. read-through.
+    </p>
+
+    <section>
+      <h2>Pacing</h2>
+      <p>Placeholder.</p>
+    </section>
+
+    <section>
+      <h2>Hands-on vs. read-through</h2>
+      <p>Placeholder.</p>
+    </section>
+  </div>
+</StudyLayout>
+
+<style>
+  .wrap { padding-top: 60px; }
+  .kicker {
+    font-family: var(--crt);
+    font-size: 1.3rem;
+    color: var(--neon-cyan);
+    letter-spacing: 4px;
+    text-shadow: 0 0 12px rgba(25, 240, 255, 0.6);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--crt);
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    line-height: 0.95;
+    color: var(--neon-lime);
+    text-shadow: 0 0 18px rgba(157, 255, 60, 0.6), 3px 3px 0 rgba(25, 240, 255, 0.3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .lead {
+    margin: 18px 0 36px;
+    max-width: 720px;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+  section { margin-bottom: 32px; }
+  h2 {
+    font-family: var(--crt);
+    font-size: 1.6rem;
+    color: var(--neon-cyan);
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(25, 240, 255, 0.4);
+    margin-bottom: 10px;
+  }
+  p { color: var(--text-dim); font-size: 0.9rem; }
+</style>

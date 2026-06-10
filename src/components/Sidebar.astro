@@ -5,6 +5,11 @@ import { getCollection } from 'astro:content';
 const domains = (await getCollection('navigation')).sort(
   (a, b) => a.data.order - b.data.order
 );
+
+// Loose top-level pages rendered above the domain nav.
+const metaPages = (await getCollection('metaPages')).sort(
+  (a, b) => a.data.order - b.data.order
+);
 ---
 
 <aside class="sidebar" transition:persist>
@@ -15,6 +20,16 @@ const domains = (await getCollection('navigation')).sort(
       <span class="tt-icon">◐</span>
     </button>
   </div>
+
+  {metaPages.length > 0 && (
+    <div class="meta-nav">
+      {metaPages.map((p) => (
+        <a class="meta-link page-link" href={p.data.slug} data-slug={p.data.slug}>
+          {p.data.label}
+        </a>
+      ))}
+    </div>
+  )}
 
   <nav class="nav">
     {domains.map((domain) => (

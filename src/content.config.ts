@@ -31,4 +31,19 @@ const navigation = defineCollection({
   }),
 });
 
-export const collections = { navigation };
+// Loose top-level pages that don't belong to any Domain/Task bucket
+// (e.g. "About the Exam", "Study Tips"). Rendered at the top of the
+// sidebar above the domain list. Each entry maps 1:1 to a flat route
+// under src/pages/ matching its `slug`.
+const metaPages = defineCollection({
+  loader: file('src/content/navigation/meta-pages.json', {
+    parser: (text) => JSON.parse(text),
+  }),
+  schema: z.object({
+    label: z.string(),
+    slug: z.string(),               // route path, e.g. "/about-exam"
+    order: z.number(),
+  }),
+});
+
+export const collections = { navigation, metaPages };

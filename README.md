@@ -14,7 +14,7 @@ npm run preview  # preview the built site
 
 Deploy `dist/` to any static host.
 
-## Add a page (the only workflow you need)
+## Add a study page (inside a Domain / Task)
 
 1. Create the page file, e.g. `src/pages/domain-2/task-2-1/my-page.astro`.
    Wrap content in the layout:
@@ -40,6 +40,34 @@ Deploy `dist/` to any static host.
    ```
 
 The sidebar updates itself. The `slug` must match the route path.
+
+## Add a loose page (outside any Domain)
+
+For orientation or reference pages that don't belong to a specific Domain / Task,
+like "About the Exam" or "Study Tips". These render at the top of the sidebar,
+above the domain list, and live at flat root routes.
+
+1. Create the page file at the project root under `src/pages/`,
+   e.g. `src/pages/glossary.astro`:
+
+   ```astro
+   ---
+   import StudyLayout from '../layouts/StudyLayout.astro';
+   ---
+   <StudyLayout title="Glossary">
+     <div class="wrap">
+       <!-- your content -->
+     </div>
+   </StudyLayout>
+   ```
+
+2. Add one entry to `src/content/navigation/meta-pages.json`:
+
+   ```json
+   { "label": "Glossary", "slug": "/glossary", "order": 3 }
+   ```
+
+The sidebar's meta block updates itself. The `slug` must match the route path.
 
 ## How the existing Domain 1.1 pages were made
 
