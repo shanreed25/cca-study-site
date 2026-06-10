@@ -82,4 +82,4 @@ the original inline `<script>` is preserved as `<script is:inline>`.
 `data-theme="dark"` is set on `<html>`. All color tokens live under
 `[data-theme="dark"]` in the layout. The sidebar toggle flips the attribute.
 Light-theme tokens are deferred (phase 2); the toggle is wired and ready, but
-only dark is defined, so it currently has no visible light state yet.
+only dark is defined, so it currently has no visible light state yet
