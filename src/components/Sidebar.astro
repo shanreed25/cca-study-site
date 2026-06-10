@@ -10,6 +10,13 @@ const domains = (await getCollection('navigation')).sort(
 const metaPages = (await getCollection('metaPages')).sort(
   (a, b) => a.data.order - b.data.order
 );
+
+// Join Astro's BASE_URL (always trailing-slashed) with a leading-slash slug
+// from JSON, without double-slashing. Used for both href and data-slug so the
+// client-side active-link script keeps matching window.location.pathname under
+// the GitHub Pages /cca-study-site/ prefix.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (slug: string) => `${base}${slug}`;
 ---
 
 <aside class="sidebar" transition:persist>
@@ -24,7 +31,7 @@ const metaPages = (await getCollection('metaPages')).sort(
   {metaPages.length > 0 && (
     <div class="meta-nav">
       {metaPages.map((p) => (
-        <a class="meta-link page-link" href={p.data.slug} data-slug={p.data.slug}>
+        <a class="meta-link page-link" href={withBase(p.data.slug)} data-slug={withBase(p.data.slug)}>
           {p.data.label}
         </a>
       ))}
@@ -55,7 +62,7 @@ const metaPages = (await getCollection('metaPages')).sort(
                   task.pages
                     .sort((a, b) => a.order - b.order)
                     .map((page) => (
-                      <a class="page-link" href={page.slug} data-slug={page.slug}>
+                      <a class="page-link" href={withBase(page.slug)} data-slug={withBase(page.slug)}>
                         {page.label}
                       </a>
                     ))
