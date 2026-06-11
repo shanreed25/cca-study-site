@@ -1,5 +1,18 @@
 ---
 import StudyLayout from '../layouts/StudyLayout.astro';
+
+// Verified 2026-06-10 against the Claude Certified Architect - Foundations
+// exam guide: https://claudecertifications.com/claude-certified-architect/exam-guide
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// Domain weights mirror the sidebar (src/content/navigation/structure.json).
+const domains = [
+  { id: '1', title: 'Agentic Architecture & Orchestration', weight: '27%' },
+  { id: '2', title: 'Tool Design & MCP Integration', weight: '18%' },
+  { id: '3', title: 'Claude Code Configuration & Workflows', weight: '20%' },
+  { id: '4', title: 'Prompt Engineering & Structured Output', weight: '20%' },
+  { id: '5', title: 'Context Management & Reliability', weight: '15%' },
+];
 ---
 
 <StudyLayout title="About the Exam">
@@ -7,29 +20,57 @@ import StudyLayout from '../layouts/StudyLayout.astro';
     <div class="kicker">// META</div>
     <h1>About the Exam</h1>
     <p class="lead">
-      Overview of the Claude Certified Associate &mdash; Foundations exam: format,
-      domains, scoring, and what to expect on test day.
+      The <b>Claude Certified Architect &ndash; Foundations</b> exam is Anthropic's first official
+      technical certification. It is built for solution architects designing production applications
+      with Claude, and it is scenario-based rather than a memorization test.
     </p>
 
     <section>
       <h2>Format</h2>
-      <p>Placeholder. Add exam format details here.</p>
+      <div class="facts">
+        <div class="fact"><span class="fk">Issued by</span><span class="fv">Anthropic</span></div>
+        <div class="fact"><span class="fk">Style</span><span class="fv">Scenario-based, multiple choice</span></div>
+        <div class="fact"><span class="fk">Scenarios</span><span class="fv">4 of 6, drawn at random</span></div>
+        <div class="fact"><span class="fk">Audience</span><span class="fv">Solution architects building on Claude</span></div>
+        <div class="fact"><span class="fk">Cost</span><span class="fv">Free for the first 5,000 partner-company employees</span></div>
+        <div class="fact"><span class="fk">Access</span><span class="fv">Request via Anthropic's Skilljar portal</span></div>
+      </div>
+      <p>
+        Each of the four scenarios you draw places you in a real production context and asks you to make
+        architectural decisions. See <a class="xlink" href={`${base}/exam-scenarios`}>The 6 Scenarios</a> for
+        the full list and the skills each one tests.
+      </p>
     </section>
 
     <section>
       <h2>Domains &amp; Weighting</h2>
-      <p>Placeholder. The sidebar shows the five domains and their weights.</p>
+      <p>Five domains, weighted by how much of the exam draws on each. The sidebar mirrors these.</p>
+      <ul class="domains">
+        {domains.map((d) => (
+          <li>
+            <span class="dname"><span class="dnum">D{d.id}</span>{d.title}</span>
+            <span class="dweight">{d.weight}</span>
+          </li>
+        ))}
+      </ul>
     </section>
 
     <section>
       <h2>Scoring</h2>
-      <p>Placeholder. Add pass mark and scoring rules here.</p>
+      <div class="facts">
+        <div class="fact"><span class="fk">Passing score</span><span class="fv">720 / 1000</span></div>
+        <div class="fact"><span class="fk">Scenarios drawn</span><span class="fv">4 of 6, at random</span></div>
+      </div>
+      <p>
+        Because you cannot predict which four scenarios appear, prepare for all six. A weak spot in any one
+        scenario is a gap you cannot route around on test day.
+      </p>
     </section>
   </div>
 </StudyLayout>
 
 <style>
-  .wrap { padding-top: 60px; }
+  .wrap { padding-top: 60px; max-width: 1080px; margin: 0 auto; }
   .kicker {
     font-family: var(--crt);
     font-size: 1.3rem;
@@ -49,18 +90,71 @@ import StudyLayout from '../layouts/StudyLayout.astro';
   }
   .lead {
     margin: 18px 0 36px;
-    max-width: 720px;
+    max-width: 760px;
     color: var(--text-dim);
     font-size: 0.95rem;
   }
-  section { margin-bottom: 32px; }
+  .lead b { color: var(--neon-lime); text-shadow: 0 0 10px rgba(157, 255, 60, 0.5); }
+  section { margin-bottom: 40px; }
   h2 {
     font-family: var(--crt);
     font-size: 1.6rem;
     color: var(--neon-cyan);
     letter-spacing: 2px;
     text-shadow: 0 0 10px rgba(25, 240, 255, 0.4);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
-  p { color: var(--text-dim); font-size: 0.9rem; }
+  p { color: var(--text-dim); font-size: 0.9rem; margin-top: 12px; max-width: 760px; }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .fact {
+    border: 1px solid var(--panel-line);
+    background: var(--panel);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .fact .fk {
+    font-family: var(--crt);
+    font-size: 1.05rem;
+    letter-spacing: 2px;
+    color: var(--neon-amber);
+    text-transform: uppercase;
+  }
+  .fact .fv { font-size: 0.86rem; color: var(--text); }
+
+  .domains { list-style: none; margin-top: 8px; }
+  .domains li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    border: 1px solid var(--panel-line);
+    background: var(--panel);
+    padding: 12px 16px;
+    margin: 8px 0;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .domains li:hover { border-color: var(--neon-cyan); box-shadow: 0 0 16px rgba(25, 240, 255, 0.12); }
+  .domains .dname { color: var(--text); font-size: 0.9rem; }
+  .domains .dnum { font-family: var(--crt); color: var(--neon-lime); margin-right: 10px; letter-spacing: 1px; }
+  .domains .dweight {
+    font-family: var(--crt);
+    font-size: 1.3rem;
+    color: var(--neon-cyan);
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px rgba(25, 240, 255, 0.4);
+  }
+
+  a.xlink {
+    color: var(--neon-lime);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(157, 255, 60, 0.4);
+  }
+  a.xlink:hover { color: #fff; border-bottom-color: #fff; }
 </style>
