@@ -396,10 +396,10 @@ const bodyHtml = `<header>
     <p class="lead">Create <code class="glow-cy">hello_claude.py</code> in your project folder. This is the entire program: one request, one printed reply. No tools, no loop.</p>
     <div class="code">
       <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">hello_claude.py</span></div>
-<pre><code><span class="k">from</span> anthropic <span class="k">import</span> Anthropic
+<pre><code><span class="k">import</span> anthropic
 
 <span class="c"># Reads ANTHROPIC_API_KEY from your environment automatically</span>
-client <span class="k">=</span> <span class="f">Anthropic</span>()
+client <span class="k">=</span> anthropic.<span class="f">Anthropic</span>()
 
 resp <span class="k">=</span> client.messages.<span class="f">create</span>(
     model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,
@@ -414,6 +414,8 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
 <span class="f">print</span>(resp.content[<span class="n">0</span>].text)</code></pre>
     </div>
 
+    <div class="why"><b>Why:</b> <code>anthropic.Anthropic()</code> with no arguments uses the env var key. <code>model</code> picks which Claude answers. <code>max_tokens</code> caps the reply length. <code>messages</code> is the conversation, here a single user turn. <code>resp.content[0].text</code> pulls the text out of the first content block.</div>
+
     <div class="dotenv-note">
       <p><b class="glow-mg">If you took the <code>.env</code> file path in Step 05,</b> add two lines to the top of <code>hello_claude.py</code> so it reads the file before creating the client:</p>
       <div class="code">
@@ -423,7 +425,45 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
       </div>
     </div>
 
-    <div class="why"><b>Why:</b> <code>Anthropic()</code> with no arguments uses the env var key. <code>model</code> picks which Claude answers. <code>max_tokens</code> caps the reply length. <code>messages</code> is the conversation, here a single user turn. <code>resp.content[0].text</code> pulls the text out of the first content block.</div>
+    <div class="keyways" style="margin-top:24px;">
+      <h3 class="alt-h3">Two ways to give the client your key</h3>
+      <p class="lead">Out in the wild you will see the client created either of these ways. They build the <b class="glow-lm">identical</b> client, the only difference is who reads the key out of the environment.</p>
+
+      <p class="lead" style="margin-top:16px;"><b class="glow-mg">Version A, explicit.</b> You fetch the key yourself with <code>os.getenv</code> and hand it to the SDK:</p>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">explicit key</span></div>
+<pre><code><span class="k">import</span> os
+<span class="k">from</span> dotenv <span class="k">import</span> load_dotenv
+<span class="k">import</span> anthropic
+
+<span class="f">load_dotenv</span>()
+client <span class="k">=</span> anthropic.<span class="f">Anthropic</span>(api_key<span class="k">=</span>os.<span class="f">getenv</span>(<span class="s">"ANTHROPIC_API_KEY"</span>))</code></pre>
+      </div>
+
+      <p class="lead" style="margin-top:16px;"><b class="glow-cy">Version B, implicit.</b> You let the SDK read the key itself:</p>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">implicit key</span></div>
+<pre><code><span class="k">from</span> dotenv <span class="k">import</span> load_dotenv
+<span class="k">import</span> anthropic
+
+<span class="c"># pull ANTHROPIC_API_KEY out of .env so the SDK can read it</span>
+<span class="f">load_dotenv</span>()
+client <span class="k">=</span> anthropic.<span class="f">Anthropic</span>()</code></pre>
+      </div>
+
+      <div class="why"><b>The difference:</b> the SDK's <code>Anthropic()</code> constructor already defaults its <code>api_key</code> to the <code>ANTHROPIC_API_KEY</code> environment variable. Version A does that lookup by hand and passes the result in, Version B lets the SDK do the same lookup. Once <code>load_dotenv()</code> has loaded your <code>.env</code> they see the same key, so Version B also drops the now-unused <code>import os</code>.</div>
+
+      <div class="dotenv-note"><p><b class="glow-lm">The rest of this field manual uses Version B.</b> It is the SDK's intended default, it is less code to read, and the key still never touches the file. Every later page either creates the client this way or assumes a <code>client</code> you already built this way, so once your <code>.env</code> is set up here, those examples run without changes.</p></div>
+    </div>
+
+    <h3 class="alt-h3" style="text-transform:none;margin-top:24px;">Why <code>import anthropic</code>, not <code>from anthropic import Anthropic</code>?</h3>
+    <p class="lead">Both import styles hand you the same <code>Anthropic</code> class, so this is a style choice, not a behavior change. This manual sticks with <code>import anthropic</code> for three reasons:</p>
+    <ul class="reasons">
+      <li><b>Namespacing.</b> <code>anthropic.Anthropic()</code> makes it self-evident where the class comes from, no guessing.</li>
+      <li><b>Error handling later.</b> If you add a <code>try / except anthropic.APIError:</code>, it is already reachable without touching the imports.</li>
+      <li><b>Avoids name clashes.</b> A bare <code>Anthropic</code> could collide with another symbol; the prefixed form never does.</li>
+    </ul>
+    <p class="lead" style="font-size:0.84rem;">It is a defensible choice, but it is not what most Anthropic examples use. The official quickstart usually writes <code>from anthropic import Anthropic</code>, so you will run into that form often too.</p>
   </section>
 
   <!-- STEP 7: RUN -->
@@ -555,6 +595,10 @@ supplied during the turn.</pre>
   a{color:var(--neon-cyan);text-decoration:none;border-bottom:1px dotted var(--neon-cyan);}
   a:hover{text-shadow:0 0 8px rgba(25,240,255,0.6);}
   .why{margin-top:12px;padding:12px 16px;border-left:2px solid var(--neon-lime);background:rgba(157,255,60,0.04);font-size:0.84rem;color:var(--text-dim);}
+  .reasons{list-style:none;margin:12px 0 4px;}
+  .reasons li{position:relative;padding-left:22px;margin:9px 0;font-size:0.88rem;color:var(--text-dim);}
+  .reasons li::before{content:"▸";position:absolute;left:0;color:var(--neon-cyan);}
+  .reasons b{color:var(--text);}
   .why b{color:var(--neon-lime);}
   .glow-cy{color:var(--neon-cyan);} .glow-mg{color:var(--neon-magenta);} .glow-lm{color:var(--neon-lime);} .glow-am{color:var(--neon-amber);}
 

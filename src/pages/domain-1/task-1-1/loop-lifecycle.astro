@@ -24,7 +24,11 @@ const bodyHtml = `<header>
         <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
         <span class="fname">single_shot.py</span>
       </div>
-<pre><code><span class="k">import</span> anthropic
+<pre><code><span class="k">from</span> dotenv <span class="k">import</span> load_dotenv
+<span class="k">import</span> anthropic
+
+<span class="c"># pull ANTHROPIC_API_KEY out of .env so the SDK can read it</span>
+<span class="f">load_dotenv</span>()
 
 client <span class="k">=</span> anthropic.<span class="f">Anthropic</span>()
 
@@ -79,13 +83,13 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
     <div class="pillars">
       <div class="pillar">
         <div class="n">01</div>
-        <h3 class="glow-cy">stop_reason owns termination</h3>
-        <p>The loop runs while <code>stop_reason == "tool_use"</code> and exits on <code>end_turn</code>. You never read the model's text to decide if it finished.</p>
+        <h3 class="glow-mg">A single call is a dead end</h3>
+        <p>One <code>messages.create()</code> returns a tool request and stops. With no loop, the tool never runs and the task never completes.</p>
       </div>
       <div class="pillar">
         <div class="n">02</div>
-        <h3 class="glow-mg">A single call is a dead end</h3>
-        <p>One <code>messages.create()</code> returns a tool request and stops. With no loop, the tool never runs and the task never completes.</p>
+        <h3 class="glow-cy">stop_reason owns termination</h3>
+        <p>The loop runs while <code>stop_reason == "tool_use"</code> and exits on <code>end_turn</code>. You never read the model's text to decide if it finished.</p>
       </div>
       <div class="pillar">
         <div class="n">03</div>
@@ -104,46 +108,46 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
   <section id="build">
     <div class="sec-num">PART 03</div>
     <h2>Build It, Step by Step</h2>
-    <p class="lead">Click <b class="glow-lm">ADD STEP</b> to assemble the loop one piece at a time. Watch the code panel grow and read why each piece exists. Each step maps to one of the four pillars.</p>
+    <p class="lead">Click <b class="glow-lm">ADD STEP</b> to assemble the loop one piece at a time. Watch the code panel grow and read why each piece exists. Four of the steps make one of the pillars real; the other two are the plumbing that holds them together.</p>
 
     <div class="builder">
       <!-- STEPS -->
       <div class="steps-col" id="stepsCol">
-        <div class="step" data-step="0">
-          <span class="chk">[OK]</span>
-          <div class="sn">STEP 0</div>
-          <h4>Seed the conversation</h4>
-          <p>Start a <code>messages</code> list with the user request. This list is the loop's memory. It grows by one round-trip each pass.</p>
-        </div>
         <div class="step" data-step="1">
           <span class="chk">[OK]</span>
           <div class="sn">STEP 1</div>
-          <h4>Open the loop</h4>
-          <p>Wrap everything in <code>while True</code>. Make the call inside it. Each pass sends the <i>entire</i> growing message list, never just the latest turn.</p>
+          <h4>Seed the conversation</h4>
+          <p>Start a <code>messages</code> list with the user request. This list is the loop's memory. It grows by one round-trip each pass.</p>
         </div>
         <div class="step" data-step="2">
           <span class="chk">[OK]</span>
           <div class="sn">STEP 2</div>
-          <h4>Inspect stop_reason &nbsp;<span style="color:var(--neon-cyan)">[Pillar 01]</span></h4>
-          <p>Append the model's reply, then branch on <code>stop_reason</code>. If it is not <code>"tool_use"</code>, the model is done. Break. Never parse the text.</p>
+          <h4>Open the loop &nbsp;<span style="color:var(--neon-magenta)">[Pillar 01]</span></h4>
+          <p>A single <code>create()</code> call returns a tool request and stops, the dead end from Part 01. Wrap the call in <code>while True</code> so it can run again. Each pass sends the <i>entire</i> growing message list, never just the latest turn.</p>
         </div>
         <div class="step" data-step="3">
           <span class="chk">[OK]</span>
           <div class="sn">STEP 3</div>
-          <h4>Execute the requested tool</h4>
-          <p>Pull each <code>tool_use</code> block, run the real function it names, and capture the output. <i>This</i> is the step the model physically cannot do for itself.</p>
+          <h4>Inspect stop_reason &nbsp;<span style="color:var(--neon-cyan)">[Pillar 02]</span></h4>
+          <p>Append the model's reply, then branch on <code>stop_reason</code>. If it is not <code>"tool_use"</code>, the model is done. Break. Never parse the text.</p>
         </div>
         <div class="step" data-step="4">
           <span class="chk">[OK]</span>
           <div class="sn">STEP 4</div>
-          <h4>Feed the result back &nbsp;<span style="color:var(--neon-lime)">[Pillar 03]</span></h4>
-          <p>Append a <code>tool_result</code> message keyed to the request's <code>id</code>. Now the loop sends again, and the model finally has its answer.</p>
+          <h4>Execute the requested tool</h4>
+          <p>Pull each <code>tool_use</code> block, run the real function it names, and capture the output. <i>This</i> is the step the model physically cannot do for itself.</p>
         </div>
         <div class="step" data-step="5">
           <span class="chk">[OK]</span>
           <div class="sn">STEP 5</div>
+          <h4>Feed the result back &nbsp;<span style="color:var(--neon-lime)">[Pillar 03]</span></h4>
+          <p>Append a <code>tool_result</code> message keyed to the request's <code>id</code>. Now the loop sends again, and the model finally has its answer.</p>
+        </div>
+        <div class="step" data-step="6">
+          <span class="chk">[OK]</span>
+          <div class="sn">STEP 6</div>
           <h4>Add the backstop &nbsp;<span style="color:var(--neon-amber)">[Pillar 04]</span></h4>
-          <p>Cap total iterations so a misbehaving model cannot loop forever. This is a safety net, not the exit. The real exit is <code>end_turn</code> in Step 2.</p>
+          <p>Cap total iterations so a misbehaving model cannot loop forever. This is a safety net, not the exit. The real exit is <code>end_turn</code> in Step 3.</p>
         </div>
       </div>
 
@@ -156,13 +160,13 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
           </div>
           <pre><code id="liveCode"><span class="empty-state c"># Empty. Click ADD STEP to begin assembling the loop...</span></code></pre>
         </div>
-      </div>
-    </div>
 
-    <div class="controls">
-      <button id="addBtn">+ Add Step</button>
-      <button id="resetBtn" class="ghost">↺ Reset</button>
-      <span class="progress" id="progress">0 / 6</span>
+        <div class="controls">
+          <button id="addBtn">+ Add Step 1</button>
+          <button id="resetBtn" class="ghost">↺ Reset</button>
+          <span class="progress" id="progress">0 / 6</span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -170,41 +174,87 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
   <section id="complete">
     <div class="sec-num">PART 04</div>
     <h2>The Assembled Loop</h2>
-    <p class="lead">All six steps together. This is the full lifecycle: seed, call, check, execute, feed back, repeat until <code class="glow-lm">end_turn</code>.</p>
+    <p class="lead">The entire file, top to bottom: imports and client setup, the tool plus the real function behind it, and the assembled loop, seed → call → check → execute → feed back, repeating until <code class="glow-lm">end_turn</code>. Drop in your <code>.env</code> and it runs.</p>
 
     <div class="code">
       <div class="code-bar">
         <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
         <span class="fname">agent_loop.py &nbsp;[complete]</span>
       </div>
-<pre><code><span class="k">def</span> <span class="f">run_agent</span>(user_message, max_iterations<span class="k">=</span><span class="n">10</span>):
+<pre><code><span class="k">from</span> dotenv <span class="k">import</span> load_dotenv
+<span class="k">import</span> anthropic
+
+<span class="c"># pull ANTHROPIC_API_KEY out of .env so the SDK can read it</span>
+<span class="f">load_dotenv</span>()
+
+client <span class="k">=</span> anthropic.<span class="f">Anthropic</span>()
+
+tools <span class="k">=</span> [{
+    <span class="s">"name"</span>: <span class="s">"get_order_status"</span>,
+    <span class="s">"description"</span>: <span class="s">"Look up the status of a customer order by ID."</span>,
+    <span class="s">"input_schema"</span>: {
+        <span class="s">"type"</span>: <span class="s">"object"</span>,
+        <span class="s">"properties"</span>: {<span class="s">"order_id"</span>: {<span class="s">"type"</span>: <span class="s">"string"</span>}},
+        <span class="s">"required"</span>: [<span class="s">"order_id"</span>],
+    },
+}]
+
+
+<span class="c"># the real function behind the tool, the model cannot run this itself</span>
+<span class="k">def</span> <span class="f">get_order_status</span>(order_id):
+    <span class="c"># in a real app this would hit your database or an API</span>
+    <span class="k">return</span> <span class="s">f"Order {order_id}: shipped, arriving Tuesday."</span>
+
+
+<span class="c"># route each tool name to its Python function</span>
+<span class="k">def</span> <span class="f">execute_tool</span>(name, tool_input):
+    <span class="k">if</span> name <span class="k">==</span> <span class="s">"get_order_status"</span>:
+        <span class="k">return</span> <span class="f">get_order_status</span>(<span class="k">**</span>tool_input)
+    <span class="k">raise</span> <span class="f">ValueError</span>(<span class="s">f"Unknown tool: {name}"</span>)
+
+
+<span class="k">def</span> <span class="f">run_agent</span>(user_message, max_iterations<span class="k">=</span><span class="n">10</span>):
     messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: user_message}]
 
-    <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(max_iterations):              <span class="c"># Pillar 04: backstop, not the brake</span>
+    <span class="c"># Pillar 04: backstop, not the brake</span>
+    <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(max_iterations):
         resp <span class="k">=</span> client.messages.<span class="f">create</span>(
             model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,
             max_tokens<span class="k">=</span><span class="n">1024</span>,
             tools<span class="k">=</span>tools,
-            messages<span class="k">=</span>messages,                  <span class="c"># send the FULL growing history</span>
+            <span class="c"># send the FULL growing history</span>
+            messages<span class="k">=</span>messages,
         )
         messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"assistant"</span>, <span class="s">"content"</span>: resp.content})
 
-        <span class="k">if</span> resp.stop_reason <span class="k">!=</span> <span class="s">"tool_use"</span>:    <span class="c"># Pillar 01: stop_reason owns the exit</span>
-            <span class="k">return</span> resp                          <span class="c"># end_turn -> the model is done</span>
+        <span class="c"># Pillar 02: stop_reason owns the exit</span>
+        <span class="k">if</span> resp.stop_reason <span class="k">!=</span> <span class="s">"tool_use"</span>:
+            <span class="c"># end_turn -> the model is done</span>
+            <span class="k">return</span> resp
 
         tool_results <span class="k">=</span> []
         <span class="k">for</span> block <span class="k">in</span> resp.content:
             <span class="k">if</span> block.type <span class="k">==</span> <span class="s">"tool_use"</span>:
-                output <span class="k">=</span> <span class="f">execute_tool</span>(block.name, block.input)  <span class="c"># YOU run it</span>
+                <span class="c"># YOU run it</span>
+                output <span class="k">=</span> <span class="f">execute_tool</span>(block.name, block.input)
                 tool_results.<span class="f">append</span>({
                     <span class="s">"type"</span>: <span class="s">"tool_result"</span>,
-                    <span class="s">"tool_use_id"</span>: block.id,         <span class="c"># key it to the request</span>
+                    <span class="c"># key it to the request</span>
+                    <span class="s">"tool_use_id"</span>: block.id,
                     <span class="s">"content"</span>: output,
                 })
 
-        messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: tool_results})  <span class="c"># Pillar 03: feed back</span>
+        <span class="c"># Pillar 03: feed back</span>
+        messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: tool_results})
 
-    <span class="k">raise</span> <span class="f">RuntimeError</span>(<span class="s">"Hit iteration cap without end_turn"</span>)   <span class="c"># backstop fired</span></code></pre>
+    <span class="c"># backstop fired</span>
+    <span class="k">raise</span> <span class="f">RuntimeError</span>(<span class="s">"Hit iteration cap without end_turn"</span>)
+
+
+<span class="c"># kick it off</span>
+<span class="k">if</span> __name__ <span class="k">==</span> <span class="s">"__main__"</span>:
+    final <span class="k">=</span> <span class="f">run_agent</span>(<span class="s">"Where is order A-4471?"</span>)
+    <span class="f">print</span>(final.content[<span class="n">0</span>].text)</code></pre>
     </div>
   </section>
 
@@ -642,17 +692,19 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
   // We store full snapshots so each "add" shows the loop in its current assembled form.
   const snapshots = [
     // STEP 0: seed
-`<span class="c"># STEP 0 — seed the conversation</span>
+`<span class="c"># STEP 1 — seed the conversation</span>
 messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: user_message}]`,
 
     // STEP 1: open loop
 `messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: user_message}]
 
-<span class="hl"><span class="k">while</span> <span class="k">True</span>:                              <span class="c"># STEP 1 — open the loop</span></span>
+<span class="hl"><span class="c"># STEP 2 — Pillar 01: one call is a dead end, so loop</span></span>
+<span class="hl"><span class="k">while</span> <span class="k">True</span>:</span>
 <span class="hl">    resp <span class="k">=</span> client.messages.<span class="f">create</span>(</span>
 <span class="hl">        model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,</span>
 <span class="hl">        max_tokens<span class="k">=</span><span class="n">1024</span>, tools<span class="k">=</span>tools,</span>
-<span class="hl">        messages<span class="k">=</span>messages,                <span class="c"># send full history</span></span>
+<span class="hl">        <span class="c"># send full history</span></span>
+<span class="hl">        messages<span class="k">=</span>messages,</span>
 <span class="hl">    )</span>`,
 
     // STEP 2: inspect stop_reason
@@ -666,8 +718,10 @@ messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="
     )
 <span class="hl">    messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"assistant"</span>, <span class="s">"content"</span>: resp.content})</span>
 <span class="hl"></span>
-<span class="hl">    <span class="k">if</span> resp.stop_reason <span class="k">!=</span> <span class="s">"tool_use"</span>:   <span class="c"># STEP 2 — Pillar 01</span></span>
-<span class="hl">        <span class="k">return</span> resp                         <span class="c"># end_turn = done, exit</span></span>`,
+<span class="hl">    <span class="c"># STEP 3 — Pillar 02</span></span>
+<span class="hl">    <span class="k">if</span> resp.stop_reason <span class="k">!=</span> <span class="s">"tool_use"</span>:</span>
+<span class="hl">        <span class="c"># end_turn = done, exit</span></span>
+<span class="hl">        <span class="k">return</span> resp</span>`,
 
     // STEP 3: execute tool
 `messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: user_message}]
@@ -683,7 +737,8 @@ messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="
     <span class="k">if</span> resp.stop_reason <span class="k">!=</span> <span class="s">"tool_use"</span>:
         <span class="k">return</span> resp
 
-<span class="hl">    tool_results <span class="k">=</span> []                       <span class="c"># STEP 3 — you run the tool</span></span>
+<span class="hl">    <span class="c"># STEP 4 — you run the tool</span></span>
+<span class="hl">    tool_results <span class="k">=</span> []</span>
 <span class="hl">    <span class="k">for</span> block <span class="k">in</span> resp.content:</span>
 <span class="hl">        <span class="k">if</span> block.type <span class="k">==</span> <span class="s">"tool_use"</span>:</span>
 <span class="hl">            output <span class="k">=</span> <span class="f">execute_tool</span>(block.name, block.input)</span>`,
@@ -706,7 +761,8 @@ messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="
     <span class="k">for</span> block <span class="k">in</span> resp.content:
         <span class="k">if</span> block.type <span class="k">==</span> <span class="s">"tool_use"</span>:
             output <span class="k">=</span> <span class="f">execute_tool</span>(block.name, block.input)
-<span class="hl">            tool_results.<span class="f">append</span>({                <span class="c"># STEP 4 — Pillar 03</span></span>
+<span class="hl">            <span class="c"># STEP 5 — Pillar 03</span></span>
+<span class="hl">            tool_results.<span class="f">append</span>({</span>
 <span class="hl">                <span class="s">"type"</span>: <span class="s">"tool_result"</span>,</span>
 <span class="hl">                <span class="s">"tool_use_id"</span>: block.id,</span>
 <span class="hl">                <span class="s">"content"</span>: output,</span>
@@ -718,7 +774,8 @@ messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="
 `<span class="k">def</span> <span class="f">run_agent</span>(user_message, max_iterations<span class="k">=</span><span class="n">10</span>):
     messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: user_message}]
 
-<span class="hl">    <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(max_iterations):          <span class="c"># STEP 5 — Pillar 04 backstop</span></span>
+<span class="hl">    <span class="c"># STEP 6 — Pillar 04 backstop</span></span>
+<span class="hl">    <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(max_iterations):</span>
         resp <span class="k">=</span> client.messages.<span class="f">create</span>(
             model<span class="k">=</span><span class="s">"claude-opus-4-8"</span>,
             max_tokens<span class="k">=</span><span class="n">1024</span>, tools<span class="k">=</span>tools,
@@ -741,7 +798,8 @@ messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="
 
         messages.<span class="f">append</span>({<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: tool_results})
 
-<span class="hl">    <span class="k">raise</span> <span class="f">RuntimeError</span>(<span class="s">"Hit cap without end_turn"</span>)  <span class="c"># net fired</span></span>`,
+<span class="hl">    <span class="c"># net fired</span></span>
+<span class="hl">    <span class="k">raise</span> <span class="f">RuntimeError</span>(<span class="s">"Hit cap without end_turn"</span>)</span>`,
   ];
 
   const TOTAL = snapshots.length; // 6
@@ -769,7 +827,7 @@ messages <span class="k">=</span> [{<span class="s">"role"</span>: <span class="
     });
 
     addBtn.disabled   = current >= TOTAL;
-    addBtn.textContent = current >= TOTAL ? '✓ Complete' : '+ Add Step';
+    addBtn.textContent = current >= TOTAL ? '✓ Complete' : '+ Add Step ' + (current + 1);
   }
 
   addBtn.addEventListener('click', ()=>{

@@ -31,6 +31,53 @@ const { title = 'CCA-F Field Manual' } = Astro.props;
       </div>
     </main>
   </div>
+
+  <script>
+    // Inject a Copy button into every code block's title bar.
+    // Runs on first load and after each Astro view transition.
+    function setupCopyButtons() {
+      document.querySelectorAll('.code-bar').forEach((bar) => {
+        if (bar.querySelector('.copy-btn')) return; // already added
+        const code = bar.parentElement && bar.parentElement.querySelector('pre code');
+        if (!code) return;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'copy-btn';
+        btn.textContent = 'Copy';
+        btn.setAttribute('aria-label', 'Copy code to clipboard');
+
+        btn.addEventListener('click', async () => {
+          const text = code.textContent || '';
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              const ta = document.createElement('textarea');
+              ta.value = text;
+              ta.style.position = 'fixed';
+              ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              ta.remove();
+            }
+            btn.textContent = 'Copied';
+            btn.classList.add('copied');
+          } catch {
+            btn.textContent = 'Error';
+          }
+          setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+          }, 1500);
+        });
+
+        bar.appendChild(btn);
+      });
+    }
+    document.addEventListener('astro:page-load', setupCopyButtons);
+  </script>
 </body>
 </html>
 
@@ -333,4 +380,38 @@ const { title = 'CCA-F Field Manual' } = Astro.props;
     animation: blink 1.1s steps(1) infinite;
   }
   @keyframes blink { 50% { opacity: 0; } }
+
+  /* ============================================================
+     COPY-CODE BUTTON
+     Injected into every .code-bar by the script below. Scoped
+     under .code-bar so it wins over any page-level bare `button`
+     rules without a specificity fight.
+     ============================================================ */
+  .code-bar .copy-btn {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--panel-line);
+    border-radius: 3px;
+    cursor: pointer;
+    text-shadow: none;
+    transition: color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .code-bar .copy-btn:hover {
+    background: transparent;
+    color: var(--neon-cyan);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(25, 240, 255, 0.25);
+  }
+  .code-bar .copy-btn.copied {
+    color: var(--neon-lime);
+    border-color: var(--neon-lime);
+    box-shadow: 0 0 10px rgba(157, 255, 60, 0.3);
+  }
 </style>
