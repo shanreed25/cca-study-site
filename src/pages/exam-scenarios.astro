@@ -10,7 +10,7 @@ const scenarios = [
     n: '01',
     accent: 'var(--neon-cyan)',
     title: 'Customer Support Resolution Agent',
-    maps: 'Domains 1 & 2',
+    maps: 'Domains 1, 2 & 5',
     desc: 'Design an AI support agent that handles inquiries, resolves issues, and escalates the complex cases. The classic agentic-loop scenario.',
     skills: [
       'Agent SDK implementation',
@@ -23,8 +23,8 @@ const scenarios = [
     n: '02',
     accent: 'var(--neon-lime)',
     title: 'Code Generation with Claude Code',
-    maps: 'Domain 3',
-    desc: 'Configure Claude Code for a development team. Almost entirely a Claude Code configuration and workflow scenario.',
+    maps: 'Domains 3 & 4',
+    desc: 'Configure Claude Code for a development team, from CLAUDE.md and plan mode to the explicit-criteria and TDD discipline that drives good refinement.',
     skills: [
       'CLAUDE.md hierarchy setup',
       'Plan mode vs direct execution',
@@ -49,7 +49,7 @@ const scenarios = [
     n: '04',
     accent: 'var(--neon-amber)',
     title: 'Developer Productivity with Claude',
-    maps: 'Domains 2 & 5',
+    maps: 'Domains 2, 3 & 5',
     desc: 'Build developer tools on the Agent SDK using built-in tools and MCP servers. The tool-selection and codebase-exploration scenario.',
     skills: [
       'Built-in tool selection (Read, Write, Bash, Grep, Glob)',
@@ -90,7 +90,7 @@ const scenarios = [
 <StudyLayout title="The 6 Exam Scenarios">
   <div class="wrap">
     <header>
-      <div class="kicker">// META : EXAM SCENARIOS</div>
+      <div class="kicker">// CCA-F : EXAM SCENARIOS</div>
       <h1>The 6 Exam<br />Scenarios</h1>
       <p class="subtitle">
         The Claude Certified Architect &ndash; Foundations exam is scenario-based. It drops you into
@@ -111,6 +111,12 @@ const scenarios = [
       Each scenario puts you in a real-world context and asks you to make architectural decisions for a
       production Claude application. They are not abstract trivia. Every scenario leans on a few of the five
       exam domains, listed on each card below so you know where to focus.
+    </p>
+
+    <p class="note">
+      <b>Note on the domain tags:</b> Anthropic does not officially publish which domains each scenario maps to.
+      The "Domains" tags on the cards are a study aid, reconstructed from public exam guides and community labs,
+      and sources differ on the secondary domains. Treat them as a guide to where to focus, not as an official mapping.
     </p>
 
     <!-- SCENARIO GRID -->
@@ -181,6 +187,14 @@ const scenarios = [
   .fact .fv { font-size: 0.86rem; color: var(--text); }
 
   .lead { color: var(--text-dim); max-width: 760px; margin: 24px 0 8px; font-size: 0.95rem; }
+
+  .note {
+    margin: 14px 0 4px; max-width: 760px;
+    border-left: 3px solid var(--neon-amber);
+    background: rgba(255, 182, 39, 0.05);
+    padding: 12px 18px; font-size: 0.84rem; color: var(--text-dim);
+  }
+  .note b { color: var(--neon-amber); }
 
   /* SCENARIO GRID */
   .grid {
