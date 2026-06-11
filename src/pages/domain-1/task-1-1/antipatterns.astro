@@ -21,7 +21,7 @@ const bodyHtml = `<header>
   <div class="card" id="card1">
     <div class="card-head">
       <span class="card-num">01</span>
-      <span class="card-title">Parsing language for "done"</span>
+      <span class="card-title">Parsing natural language for phrases</span>
     </div>
     <div class="card-body">
       <p class="card-intro">A support agent loop. It is supposed to look up an order and reply. Read it, then decide.</p>
@@ -75,7 +75,7 @@ const bodyHtml = `<header>
   <div class="card" id="card2">
     <div class="card-head">
       <span class="card-num">02</span>
-      <span class="card-title">Iteration cap as the brake</span>
+      <span class="card-title">Iteration caps as the primary stopping mechanism</span>
     </div>
     <div class="card-body">
       <p class="card-intro">Same task, different stop strategy. Decide before revealing.</p>
@@ -132,7 +132,7 @@ const bodyHtml = `<header>
   <div class="card" id="card3">
     <div class="card-head">
       <span class="card-num">03</span>
-      <span class="card-title">Assistant text means "finished"</span>
+      <span class="card-title">Checking text content to determine completion</span>
     </div>
     <div class="card-body">
       <p class="card-intro">Subtle cousin of #1. It does not match keywords, it checks whether the model produced any text. Decide.</p>
@@ -241,17 +241,17 @@ const bodyHtml = `<header>
       <tbody>
         <tr>
           <td><code>if "..." in text</code></td>
-          <td>Parsing language for "done"</td>
+          <td>Parsing natural language for phrases</td>
           <td>Prose is not a contract; false stops and missed stops both happen.</td>
         </tr>
         <tr>
           <td><code>range(N)</code> with no <code>stop_reason</code> check</td>
-          <td>Cap as the brake</td>
+          <td>Iteration caps as the primary stopping mechanism</td>
           <td>Never asks the model if it is finished; cuts off or overruns.</td>
         </tr>
         <tr>
           <td><code>if has_text: break</code></td>
-          <td>Text means finished</td>
+          <td>Checking text content to determine completion</td>
           <td>Text and <code>tool_use</code> coexist in one response; tool never runs.</td>
         </tr>
         <tr>
