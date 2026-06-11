@@ -45,6 +45,7 @@ const bodyHtml = `<header>
       <button class="os-tab active" data-os="mac">macOS</button>
       <button class="os-tab" data-os="win">Windows</button>
       <button class="os-tab" data-os="linux">Linux</button>
+      <button class="os-tab" data-os="winbash">Git Bash</button>
     </div>
 
     <div class="os-panel active" data-group="py" data-os="mac">
@@ -85,6 +86,19 @@ const bodyHtml = `<header>
       </div>
     </div>
 
+    <div class="os-panel" data-group="py" data-os="winbash">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Git Bash — Windows</span></div>
+<pre><code><span class="c"># Install Python the Windows way first (see the Windows tab):</span>
+<span class="c"># python.org installer or "winget install Python.Python.3.12".</span>
+<span class="c"># Once installed system-wide, Python is available in git bash too.</span>
+
+<span class="c"># Verify (restart git bash after the install)</span>
+<span class="prompt">$</span> python --version
+<span class="c"># -> Python 3.12.x</span></code></pre>
+      </div>
+    </div>
+
     <div class="why"><b>Why:</b> the <code>anthropic</code> package targets Python 3.9 and up. Anything older will fail to install or import.</div>
   </section>
 
@@ -101,41 +115,59 @@ const bodyHtml = `<header>
     <div class="why"><b>Why:</b> a leaked key lets anyone spend against your account. Environment variables keep the secret in your shell session, not in source control.</div>
   </section>
 
-  <!-- STEP 3: VENV -->
-  <section class="step" id="s3">
-    <div class="step-head"><span class="step-num">03</span><h2>Create a Virtual Environment</h2></div>
-    <p class="lead">A venv is an isolated sandbox for this project's packages, so the SDK does not collide with anything else on your machine. Create it once, then activate it whenever you work.</p>
+  <!-- ============================================================ -->
+  <!-- STEPS 3 + 4: Create venv & Install SDK (two paths)            -->
+  <!-- ============================================================ -->
+  <section class="step" id="venv-intro">
+    <div class="step-head"><h2>Create a Virtual Environment</h2></div>
+    <p class="lead">A venv is an isolated sandbox for this project's packages, so the SDK does not collide with anything else on your machine. Create it once, then activate it whenever you work. Without one, <code>pip install</code> would dump packages into your system Python and cause version conflicts across projects.</p>
+  </section>
 
-    <div class="code">
-      <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">create the venv (all systems)</span></div>
+  <div class="paths-intro">
+    <p><strong class="glow-cy">▶ PICK ONE PATH.</strong> Use the venv + pip path on the left <em>or</em> the uv path on the right, <b class="glow-am">not both</b>, then continue with Step 5 below. Both venv + pip and uv are ways to get from "no project folder" to "SDK installed". The exam path likely expects venv + pip knowledge, so learn that if you do not know it.</p>
+  </div>
+
+  <div class="paths">
+  <!-- LEFT: VENV + PIP PATH -->
+  <div class="path">
+    <span class="path-tag">▶ VENV + PIP PATH</span>
+
+    <!-- 03 inside venv path -->
+    <div class="path-step">
+      <div class="path-step-head"><span class="step-num">03</span><h3>Create the venv</h3></div>
+
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">create the venv</span></div>
 <pre><code><span class="c"># Make a project folder and step into it</span>
-<span class="prompt">$</span> mkdir claude-start && cd claude-start
+<span class="prompt">$</span> mkdir <span class="glow-mg">claude-start</span> && cd <span class="glow-mg">claude-start</span>
 
 <span class="c"># Create the virtual environment named .venv</span>
 <span class="prompt">$</span> python3 -m venv .venv</code></pre>
-    </div>
+      </div>
+      <p class="lead" style="margin-top:10px;font-size:0.84rem;"><span class="glow-mg">claude-start</span> is just the folder name — call it whatever you want (<code>my-agent</code>, <code>cca-prep</code>, etc.). Both commands use the same name; if you change one, change both.</p>
 
-    <p class="lead" style="margin-top:18px;">Activation is the one command that differs per OS:</p>
+      <p class="lead" style="margin-top:18px;">Activation is the one command that differs per OS:</p>
 
-    <div class="os-tabs" data-group="venv">
-      <button class="os-tab active" data-os="mac">macOS</button>
-      <button class="os-tab" data-os="win">Windows</button>
-      <button class="os-tab" data-os="linux">Linux</button>
-    </div>
+      <div class="os-tabs" data-group="venv">
+        <button class="os-tab active" data-os="mac">macOS</button>
+        <button class="os-tab" data-os="win">Windows</button>
+        <button class="os-tab" data-os="linux">Linux</button>
+        <button class="os-tab" data-os="winbash">Git Bash</button>
+      </div>
 
-    <div class="os-panel active" data-group="venv" data-os="mac">
-      <div class="code">
-        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — macOS (zsh/bash)</span></div>
+      <div class="os-panel active" data-group="venv" data-os="mac">
+        <div class="code">
+          <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — macOS (zsh/bash)</span></div>
 <pre><code><span class="prompt">$</span> source .venv/bin/activate
 
 <span class="c"># Your prompt now shows (.venv)</span>
 <span class="c">(.venv) $</span></code></pre>
+        </div>
       </div>
-    </div>
 
-    <div class="os-panel" data-group="venv" data-os="win">
-      <div class="code">
-        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — Windows (PowerShell)</span></div>
+      <div class="os-panel" data-group="venv" data-os="win">
+        <div class="code">
+          <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — Windows (PowerShell)</span></div>
 <pre><code><span class="prompt">&gt;</span> .venv\\Scripts\\Activate.ps1
 
 <span class="c"># If blocked by execution policy, run once:</span>
@@ -143,45 +175,147 @@ const bodyHtml = `<header>
 
 <span class="c"># Prompt now shows (.venv)</span>
 <span class="c">(.venv) &gt;</span></code></pre>
+        </div>
       </div>
-    </div>
 
-    <div class="os-panel" data-group="venv" data-os="linux">
-      <div class="code">
-        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — Linux (bash)</span></div>
+      <div class="os-panel" data-group="venv" data-os="linux">
+        <div class="code">
+          <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — Linux (bash)</span></div>
 <pre><code><span class="prompt">$</span> source .venv/bin/activate
 
 <span class="c"># Your prompt now shows (.venv)</span>
 <span class="c">(.venv) $</span></code></pre>
+        </div>
+      </div>
+
+      <div class="os-panel" data-group="venv" data-os="winbash">
+        <div class="code">
+          <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">activate — Git Bash (Windows)</span></div>
+<pre><code><span class="c"># Note: Scripts/ (not bin/) on Windows, but source still works in git bash:</span>
+<span class="prompt">$</span> source .venv/Scripts/activate
+
+<span class="c"># Your prompt now shows (.venv)</span>
+<span class="c">(.venv) $</span></code></pre>
+        </div>
       </div>
     </div>
 
-    <div class="why"><b>Why:</b> without a venv, <code>pip install</code> dumps packages into your system Python, which causes version conflicts across projects. The venv keeps this project self-contained. When the prompt shows <span class="glow-lm">(.venv)</span>, you are inside it.</div>
-  </section>
-
-  <!-- STEP 4: INSTALL SDK -->
-  <section class="step" id="s4">
-    <div class="step-head"><span class="step-num">04</span><h2>Install the SDK</h2></div>
-    <p class="lead">One command, same on every OS. Run it with your venv active.</p>
-    <div class="code">
-      <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">install anthropic (all systems)</span></div>
+    <!-- 04 inside venv path -->
+    <div class="path-step">
+      <div class="path-step-head"><span class="step-num">04</span><h3>Install the SDK</h3></div>
+      <p class="lead">One command, same on every OS. Run it with your venv active.</p>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">install anthropic</span></div>
 <pre><code><span class="c">(.venv) $</span> pip install anthropic
 
 <span class="c"># Confirm it landed</span>
 <span class="c">(.venv) $</span> pip show anthropic</code></pre>
+      </div>
     </div>
-    <div class="why"><b>Why:</b> <code>anthropic</code> is the official Python SDK. It gives you the <code>Anthropic</code> client and the <code>messages.create()</code> method you are about to call.</div>
+  </div>
+  <!-- /VENV + PIP PATH -->
+
+  <!-- RIGHT: MODERN ALTERNATIVE (uv) -->
+  <div class="alt">
+    <span class="alt-tag">▶ MODERN ALTERNATIVE</span>
+    <h3 class="alt-h3">Use <code class="glow-mg">uv</code> instead of venv + pip</h3>
+    <p class="alt-head"><a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv</a> is a single Rust-based tool from Astral that replaces <code>venv</code> and <code>pip</code>, much faster than both.</p>
+
+    <p class="lead" style="margin-top:14px;">Install uv first — the command differs per OS:</p>
+
+    <div class="os-tabs" data-group="uv-install">
+      <button class="os-tab active" data-os="mac">macOS</button>
+      <button class="os-tab" data-os="win">Windows</button>
+      <button class="os-tab" data-os="linux">Linux</button>
+      <button class="os-tab" data-os="winbash">Git Bash</button>
+    </div>
+
+    <div class="os-panel active" data-group="uv-install" data-os="mac">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">install uv — macOS</span></div>
+<pre><code><span class="prompt">$</span> curl -LsSf https://astral.sh/uv/install.sh | sh</code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="uv-install" data-os="win">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">install uv — Windows (PowerShell)</span></div>
+<pre><code><span class="prompt">&gt;</span> powershell -c <span class="s">"irm https://astral.sh/uv/install.ps1 | iex"</span></code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="uv-install" data-os="linux">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">install uv — Linux</span></div>
+<pre><code><span class="prompt">$</span> curl -LsSf https://astral.sh/uv/install.sh | sh</code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="uv-install" data-os="winbash">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">install uv — Git Bash (Windows)</span></div>
+<pre><code><span class="c"># git bash has curl, so the Unix installer works here too:</span>
+<span class="prompt">$</span> curl -LsSf https://astral.sh/uv/install.sh | sh</code></pre>
+      </div>
+    </div>
+
+    <!-- 03 inside uv path -->
+    <div class="path-step">
+      <div class="path-step-head"><span class="step-num">03</span><h3>Create the venv</h3></div>
+
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">create the venv</span></div>
+<pre><code><span class="c"># Make a project folder and step into it</span>
+<span class="prompt">$</span> mkdir <span class="glow-mg">claude-start</span> && cd <span class="glow-mg">claude-start</span>
+
+<span class="c"># Create the virtual environment named .venv</span>
+<span class="prompt">$</span> uv venv</code></pre>
+      </div>
+
+      <p class="lead" style="margin-top:18px;">Activation is identical to the venv + pip column (same <code>source .venv/bin/activate</code> on mac/linux, <code>.venv\\Scripts\\Activate.ps1</code> on Windows).</p>
+
+      <p class="lead" style="margin-top:14px;font-size:0.84rem;"><b class="glow-mg">Skip activation entirely</b> with project mode: <code>uv init <span class="glow-mg">claude-start</span></code> creates a folder with a <code>pyproject.toml</code> + venv, and <code>uv run</code> later uses that venv automatically.</p>
+    </div>
+
+    <!-- 04 inside uv path -->
+    <div class="path-step">
+      <div class="path-step-head"><span class="step-num">04</span><h3>Install the SDK</h3></div>
+      <p class="lead">One command, much faster than pip. Run it with your venv active.</p>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">install anthropic</span></div>
+<pre><code><span class="c">(.venv) $</span> uv pip install anthropic</code></pre>
+      </div>
+      <p class="lead" style="margin-top:14px;font-size:0.84rem;">In <b class="glow-mg">project mode</b>: <code>uv add anthropic</code> instead — records it in <code>pyproject.toml</code> + <code>uv.lock</code>.</p>
+    </div>
+  </div>
+  <!-- /MODERN ALTERNATIVE -->
+  </div>
+  <!-- /paths -->
+
+  <!-- ============================================================ -->
+  <!-- STEP 5: Set Your API Key (two paths)                          -->
+  <!-- ============================================================ -->
+  <section class="step" id="key-intro">
+    <div class="step-head"><span class="step-num">05</span><h2>Set Your API Key</h2></div>
+    <p class="lead">The SDK automatically reads an environment variable named <code class="glow-cy">ANTHROPIC_API_KEY</code>. There are two ways to put it there: a shell export or a <code>.env</code> file. Either way, the key never appears in your <code>.py</code> file, which is what keeps <code>hello_claude.py</code> safe to commit or share.</p>
   </section>
 
-  <!-- STEP 5: SET KEY -->
-  <section class="step" id="s5">
-    <div class="step-head"><span class="step-num">05</span><h2>Set Your API Key</h2></div>
-    <p class="lead">The SDK automatically reads an environment variable named <code class="glow-cy">ANTHROPIC_API_KEY</code>. Set it so you never type the key into your code.</p>
+  <div class="paths-intro">
+    <p><strong class="glow-cy">▶ PICK ONE PATH.</strong> Shell export on the left is fastest for one-off testing. The <code>.env</code> file on the right is better for projects you will come back to, especially with multiple keys.</p>
+  </div>
+
+  <div class="paths">
+  <!-- LEFT: SHELL ENV PATH -->
+  <div class="path">
+    <span class="path-tag">▶ SHELL ENV PATH</span>
+
+    <p class="lead">Set the variable in your shell. The command differs per OS:</p>
 
     <div class="os-tabs" data-group="key">
       <button class="os-tab active" data-os="mac">macOS</button>
       <button class="os-tab" data-os="win">Windows</button>
       <button class="os-tab" data-os="linux">Linux</button>
+      <button class="os-tab" data-os="winbash">Git Bash</button>
     </div>
 
     <div class="os-panel active" data-group="key" data-os="mac">
@@ -218,8 +352,43 @@ const bodyHtml = `<header>
       </div>
     </div>
 
-    <div class="why"><b>Why:</b> the client picks up <code>ANTHROPIC_API_KEY</code> on its own, so your <code>.py</code> file never contains the secret. That is what makes the file safe to commit or share.</div>
-  </section>
+    <div class="os-panel" data-group="key" data-os="winbash">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">set key — Git Bash (Windows)</span></div>
+<pre><code><span class="c"># For this session only:</span>
+<span class="prompt">$</span> export ANTHROPIC_API_KEY=<span class="s">"sk-ant-your-key-here"</span>
+
+<span class="c"># To persist it, add that line to ~/.bashrc, then:</span>
+<span class="prompt">$</span> source ~/.bashrc</code></pre>
+      </div>
+    </div>
+  </div>
+  <!-- /SHELL ENV PATH -->
+
+  <!-- RIGHT: .ENV FILE PATH -->
+  <div class="alt">
+    <span class="alt-tag">▶ .ENV FILE PATH</span>
+    <h3 class="alt-h3">Load it from a <code class="glow-mg">.env</code> file</h3>
+    <p class="alt-head">A <code>.env</code> file keeps the key inside the project folder (gitignored), so you do not have to re-export it in every new shell session. Better for projects you will reopen and for juggling multiple keys.</p>
+
+    <p class="lead" style="margin-top:14px;">Install <code class="glow-cy">python-dotenv</code>:</p>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">install python-dotenv</span></div>
+<pre><code><span class="c">(.venv) $</span> pip install python-dotenv</code></pre>
+    </div>
+    <p class="lead" style="margin-top:8px;font-size:0.84rem;">Using uv? <code>uv pip install python-dotenv</code> (or <code>uv add python-dotenv</code> in project mode).</p>
+
+    <p class="lead" style="margin-top:18px;">Create <code class="glow-cy">.env</code> in your project folder:</p>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">.env</span></div>
+<pre><code>ANTHROPIC_API_KEY=<span class="s">sk-ant-your-key-here</span></code></pre>
+    </div>
+
+    <div class="warn"><b>⚠ Always gitignore <code>.env</code>.</b> Add a line containing <code>.env</code> to your <code>.gitignore</code> so the key is never committed.</div>
+  </div>
+  <!-- /.ENV FILE PATH -->
+  </div>
+  <!-- /paths -->
 
   <!-- STEP 6: WRITE FILE -->
   <section class="step" id="s6">
@@ -244,6 +413,16 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
 <span class="c"># the first block holds the text.</span>
 <span class="f">print</span>(resp.content[<span class="n">0</span>].text)</code></pre>
     </div>
+
+    <div class="dotenv-note">
+      <p><b class="glow-mg">If you took the <code>.env</code> file path in Step 05,</b> add two lines to the top of <code>hello_claude.py</code> so it reads the file before creating the client:</p>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">hello_claude.py (add at the top)</span></div>
+<pre><code><span class="k">from</span> dotenv <span class="k">import</span> load_dotenv
+<span class="f">load_dotenv</span>()  <span class="c"># reads .env into os.environ</span></code></pre>
+      </div>
+    </div>
+
     <div class="why"><b>Why:</b> <code>Anthropic()</code> with no arguments uses the env var key. <code>model</code> picks which Claude answers. <code>max_tokens</code> caps the reply length. <code>messages</code> is the conversation, here a single user turn. <code>resp.content[0].text</code> pulls the text out of the first content block.</div>
   </section>
 
@@ -256,6 +435,7 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
       <button class="os-tab active" data-os="mac">macOS</button>
       <button class="os-tab" data-os="win">Windows</button>
       <button class="os-tab" data-os="linux">Linux</button>
+      <button class="os-tab" data-os="winbash">Git Bash</button>
     </div>
 
     <div class="os-panel active" data-group="run" data-os="mac">
@@ -274,6 +454,14 @@ resp <span class="k">=</span> client.messages.<span class="f">create</span>(
       <div class="code">
         <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">run — Linux</span></div>
 <pre><code><span class="c">(.venv) $</span> python3 hello_claude.py</code></pre>
+      </div>
+    </div>
+
+    <div class="os-panel" data-group="run" data-os="winbash">
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">run — Git Bash (Windows)</span></div>
+<pre><code><span class="c"># Use python (not python3) — Windows Python registers as "python":</span>
+<span class="c">(.venv) $</span> python hello_claude.py</code></pre>
       </div>
     </div>
 
@@ -407,6 +595,97 @@ supplied during the turn.</pre>
   /* CALLOUT (security) */
   .warn{border:1px solid var(--neon-amber);background:linear-gradient(180deg,rgba(255,182,39,0.06),transparent);padding:14px 18px;margin:16px 0;font-size:0.86rem;}
   .warn b{color:var(--neon-amber);}
+
+  /* CONDITIONAL NOTE (only-if-you-took-the-.env-path, magenta-themed) */
+  .dotenv-note{
+    border:1px dashed var(--neon-magenta);
+    background:linear-gradient(180deg,rgba(255,43,214,0.04),transparent);
+    padding:14px 18px;margin:20px 0;font-size:0.88rem;color:var(--text-dim);
+  }
+  .dotenv-note p{margin:0 0 10px;font-size:0.88rem;}
+  .dotenv-note b{color:var(--text);}
+
+  /* TWO-PATH LAYOUT (side-by-side venv + pip and uv boxes) */
+  .paths-intro{
+    margin:48px 0 18px;padding:14px 18px;
+    border-top:1px dashed var(--panel-line);border-bottom:1px dashed var(--panel-line);
+    font-size:0.92rem;color:var(--text-dim);line-height:1.55;
+  }
+  .paths-intro p{
+    max-width:760px;margin:0 auto;
+    text-align:left;            /* left-aligned text inside a centered block — wraps cleanly without center-induced raggedness */
+  }
+  .paths-intro strong{font-family:var(--crt);font-size:1.05rem;letter-spacing:3px;margin-right:6px;}
+  .paths-intro em{font-style:italic;color:var(--text);}
+  .paths-intro b{font-weight:700;}
+  .paths{
+    display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch;margin:0 0 48px;
+  }
+  /* override the boxes' own outer margin while inside the grid */
+  .paths > .path,
+  .paths > .alt{margin:0;}
+  /* stack vertically when the viewport (or content column) gets too narrow */
+  @media (max-width:1100px){
+    .paths{grid-template-columns:1fr;}
+  }
+
+  /* CALLOUT (venv + pip path — wraps Steps 3 and 4) */
+  .path{
+    margin:48px 0;border:1px solid var(--neon-cyan);
+    background:linear-gradient(180deg,rgba(25,240,255,0.04),rgba(25,240,255,0.01));
+    padding:8px 30px 28px;box-shadow:0 0 26px rgba(25,240,255,0.08),inset 0 0 30px rgba(25,240,255,0.025);
+    position:relative;
+  }
+  .path-tag{
+    position:absolute;top:-11px;left:24px;background:var(--bg-deep);padding:0 10px;
+    font-family:var(--crt);font-size:1.2rem;color:var(--neon-cyan);letter-spacing:3px;
+    text-shadow:0 0 10px rgba(25,240,255,0.7);
+  }
+  /* nested first .step gets no dashed top border or oversize margin */
+  .path > .step:first-of-type{border-top:none;margin-top:18px;padding-top:0;}
+
+  /* Sub-steps (03, 04) INSIDE a .path or .alt box */
+  .path-step{margin-top:8px;}
+  .path-step + .path-step{margin-top:28px;padding-top:24px;border-top:1px dashed var(--panel-line);}
+  .path-step-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:8px;}
+  .path-step-head .step-num{font-family:var(--crt);font-size:2rem;color:var(--neon-magenta);text-shadow:0 0 12px rgba(255,43,214,0.55);line-height:1;}
+  .path .path-step-head .step-num{color:var(--neon-cyan);text-shadow:0 0 12px rgba(25,240,255,0.55);}
+  .path-step-head h3{font-family:var(--crt);font-size:1.4rem;color:var(--text);text-transform:uppercase;letter-spacing:2px;line-height:1;margin:0;}
+
+  /* CALLOUT (modern alternative — uv) */
+  .alt{
+    margin:48px 0;border:1px solid var(--neon-magenta);
+    background:linear-gradient(180deg,rgba(255,43,214,0.06),rgba(255,43,214,0.01));
+    padding:28px 30px;box-shadow:0 0 26px rgba(255,43,214,0.1),inset 0 0 30px rgba(255,43,214,0.03);
+    position:relative;
+  }
+  .alt-tag{
+    position:absolute;top:-11px;left:24px;background:var(--bg-deep);padding:0 10px;
+    font-family:var(--crt);font-size:1.2rem;color:var(--neon-magenta);letter-spacing:3px;
+    text-shadow:0 0 10px rgba(255,43,214,0.7);
+  }
+  .alt-h3{font-family:var(--crt);font-size:1.5rem;color:#fff;letter-spacing:1px;margin:0 0 10px;text-transform:uppercase;}
+  .alt-h3 code{font-family:var(--mono);font-size:1.1rem;background:rgba(255,43,214,0.1);border:1px solid rgba(255,43,214,0.3);padding:0 6px;}
+  .alt-lead{color:var(--text-dim);font-size:0.92rem;line-height:1.55;max-width:720px;}
+  .alt-lead a{color:var(--neon-magenta);border-bottom-color:var(--neon-magenta);}
+  .alt-lead a:hover{text-shadow:0 0 8px rgba(255,43,214,0.6);}
+  .alt-lead code{font-family:var(--mono);color:var(--neon-magenta);font-size:0.84rem;}
+  .alt-head{
+    margin:0 0 14px;padding:10px 14px;
+    background:rgba(255,43,214,0.06);border:1px solid rgba(255,43,214,0.3);
+    font-size:0.84rem;color:var(--text);line-height:1.55;
+  }
+  .alt-head b{color:var(--neon-magenta);}
+  .alt-head code{font-family:var(--mono);background:rgba(255,43,214,0.1);border:1px solid rgba(255,43,214,0.25);padding:1px 6px;font-size:0.76rem;color:var(--text);word-break:break-all;}
+  .alt-sub{
+    font-family:var(--crt);font-size:1.2rem;color:var(--neon-cyan);letter-spacing:2px;
+    margin:24px 0 6px;text-transform:uppercase;
+    display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  }
+  .alt-note{font-family:var(--mono);font-size:0.72rem;color:var(--text-dim);letter-spacing:0;text-transform:none;font-weight:400;}
+  .alt-foot{margin-top:18px;padding-top:14px;border-top:1px dashed rgba(255,43,214,0.3);font-size:0.84rem;color:var(--text-dim);line-height:1.55;}
+  .alt-foot b{color:var(--neon-magenta);}
+  .alt-foot code{font-family:var(--mono);background:rgba(255,43,214,0.08);border:1px solid rgba(255,43,214,0.2);padding:1px 6px;font-size:0.78rem;color:var(--text);}
 
   /* DONE */
   .done-box{
