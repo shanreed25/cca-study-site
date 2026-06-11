@@ -1,5 +1,6 @@
 [
   { "label": "About the Exam",  "slug": "/about-exam",     "order": 1 },
-  { "label": "Study Tips",      "slug": "/study-tips",     "order": 2 },
-  { "label": "Two-Axis Model",  "slug": "/two-axis-model", "order": 3 }
+  { "label": "The 6 Scenarios", "slug": "/exam-scenarios", "order": 2 },
+  { "label": "Study Tips",      "slug": "/study-tips",     "order": 3 },
+  { "label": "Two-Axis Model",  "slug": "/two-axis-model", "order": 4 }
 ]

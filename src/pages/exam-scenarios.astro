@@ -1,0 +1,248 @@
+---
+import StudyLayout from '../layouts/StudyLayout.astro';
+
+// Source of record (verified 2026-06-10):
+//   https://claudecertifications.com/claude-certified-architect/exam-guide
+//   https://dev.to/aws-builders/the-claude-certified-architect-exam-5-domains-6-scenarios-and-everything-you-need-to-know-4le3
+// The exam draws 4 of these 6 production scenarios at random.
+const scenarios = [
+  {
+    n: '01',
+    accent: 'var(--neon-cyan)',
+    title: 'Customer Support Resolution Agent',
+    maps: 'Domains 1 & 2',
+    desc: 'Design an AI support agent that handles inquiries, resolves issues, and escalates the complex cases. The classic agentic-loop scenario.',
+    skills: [
+      'Agent SDK implementation',
+      'Escalation pattern design',
+      'Hook-based compliance enforcement',
+      'Structured error handling',
+    ],
+  },
+  {
+    n: '02',
+    accent: 'var(--neon-lime)',
+    title: 'Code Generation with Claude Code',
+    maps: 'Domain 3',
+    desc: 'Configure Claude Code for a development team. Almost entirely a Claude Code configuration and workflow scenario.',
+    skills: [
+      'CLAUDE.md hierarchy setup',
+      'Plan mode vs direct execution',
+      'Custom slash commands and skills',
+      'TDD iteration pattern',
+    ],
+  },
+  {
+    n: '03',
+    accent: 'var(--neon-magenta)',
+    title: 'Multi-Agent Research System',
+    maps: 'Domains 1 & 5',
+    desc: 'Build a coordinator and subagent system for parallel research. Tests orchestration and how results flow back without losing their source.',
+    skills: [
+      'Hub-and-spoke architecture',
+      'Context isolation and passing',
+      'Error propagation patterns',
+      'Information provenance and synthesis',
+    ],
+  },
+  {
+    n: '04',
+    accent: 'var(--neon-amber)',
+    title: 'Developer Productivity with Claude',
+    maps: 'Domains 2 & 5',
+    desc: 'Build developer tools on the Agent SDK using built-in tools and MCP servers. The tool-selection and codebase-exploration scenario.',
+    skills: [
+      'Built-in tool selection (Read, Write, Bash, Grep, Glob)',
+      'MCP server integration',
+      'Codebase exploration strategies',
+      'Tool distribution across agents',
+    ],
+  },
+  {
+    n: '05',
+    accent: 'var(--neon-cyan)',
+    title: 'Claude Code for CI/CD',
+    maps: 'Domains 3 & 4',
+    desc: 'Wire Claude Code into continuous integration and delivery. Headless, non-interactive, and machine-readable by design.',
+    skills: [
+      'The -p flag for non-interactive mode',
+      'Structured output with --output-format json',
+      'Batch API with Message Batches',
+      'Session isolation for generator vs reviewer',
+    ],
+  },
+  {
+    n: '06',
+    accent: 'var(--neon-lime)',
+    title: 'Structured Data Extraction',
+    maps: 'Domains 4 & 5',
+    desc: 'Pull structured data out of unstructured documents. The prompt-engineering and schema scenario, where validation is the whole game.',
+    skills: [
+      'JSON schema design for tool_use',
+      'Validation-retry loop implementation',
+      'Few-shot prompting for format consistency',
+      'Field-level confidence and human review',
+    ],
+  },
+];
+---
+
+<StudyLayout title="The 6 Exam Scenarios">
+  <div class="wrap">
+    <header>
+      <div class="kicker">// META : EXAM SCENARIOS</div>
+      <h1>The 6 Exam<br />Scenarios</h1>
+      <p class="subtitle">
+        The Claude Certified Architect &ndash; Foundations exam is scenario-based. It drops you into
+        <b class="glow-lm">4 of these 6</b> production situations, chosen at random. You cannot predict
+        which four, so the only safe play is to prepare for all six.<span class="blink"></span>
+      </p>
+    </header>
+
+    <!-- FORMAT STRIP -->
+    <div class="facts">
+      <div class="fact"><span class="fk">Format</span><span class="fv">Scenario-based, multiple choice</span></div>
+      <div class="fact"><span class="fk">Scenarios</span><span class="fv">4 of 6, drawn at random</span></div>
+      <div class="fact"><span class="fk">Passing score</span><span class="fv">720 / 1000</span></div>
+      <div class="fact"><span class="fk">Issued by</span><span class="fv">Anthropic</span></div>
+    </div>
+
+    <p class="lead">
+      Each scenario puts you in a real-world context and asks you to make architectural decisions for a
+      production Claude application. They are not abstract trivia. Every scenario leans on a few of the five
+      exam domains, listed on each card below so you know where to focus.
+    </p>
+
+    <!-- SCENARIO GRID -->
+    <div class="grid">
+      {scenarios.map((s) => (
+        <article class="scn" style={`--accent:${s.accent};`}>
+          <div class="scn-top">
+            <span class="scn-num">{s.n}</span>
+            <span class="scn-maps">{s.maps}</span>
+          </div>
+          <h3>{s.title}</h3>
+          <p class="scn-desc">{s.desc}</p>
+          <div class="scn-skills-label">Key skills tested</div>
+          <ul class="scn-skills">
+            {s.skills.map((sk) => <li>{sk}</li>)}
+          </ul>
+        </article>
+      ))}
+    </div>
+
+    <!-- TAKEAWAY -->
+    <div class="takeaway">
+      <h3>// HOW TO USE THIS</h3>
+      <ul>
+        <li><b>Prepare for all six, not your favorites.</b> The exam picks four at random, so a gap in any one scenario is a gap you cannot route around on test day.</li>
+        <li><b>Scenarios are domain mixes.</b> A single scenario can pull from two or three domains at once. The card's "Domains" tag tells you which study pages feed it.</li>
+        <li><b>Watch for anti-patterns.</b> Wrong answers are usually a plausible-sounding anti-pattern: parsing text for loop termination, prompt-based enforcement of hard rules, sentiment-based escalation. Knowing the anti-pattern is half the question.</li>
+      </ul>
+    </div>
+
+    <footer>
+      THE 6 EXAM SCENARIOS // CLAUDE CERTIFIED ARCHITECT &ndash; FOUNDATIONS // study artifact, verified 2026-06-10<span class="blink"></span>
+    </footer>
+  </div>
+</StudyLayout>
+
+<style>
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 120px; position: relative; z-index: 1; }
+
+  /* HEADER */
+  header { padding: 80px 0 40px; border-bottom: 1px solid var(--panel-line); }
+  .kicker {
+    font-family: var(--crt); font-size: 1.5rem; color: var(--neon-cyan);
+    letter-spacing: 4px; text-shadow: 0 0 12px rgba(25, 240, 255, 0.6); margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--crt); font-size: clamp(2.6rem, 8vw, 6rem); line-height: 0.92;
+    color: var(--neon-lime);
+    text-shadow: 0 0 18px rgba(157, 255, 60, 0.6), 4px 4px 0 rgba(25, 240, 255, 0.3);
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .subtitle { margin-top: 20px; max-width: 660px; color: var(--text-dim); font-size: 0.95rem; }
+  .subtitle b { color: var(--neon-lime); text-shadow: 0 0 10px rgba(157, 255, 60, 0.5); }
+
+  /* FORMAT STRIP */
+  .facts {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin: 32px 0 8px;
+  }
+  .fact {
+    border: 1px solid var(--panel-line); background: var(--panel);
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .fact .fk {
+    font-family: var(--crt); font-size: 1.05rem; letter-spacing: 2px;
+    color: var(--neon-amber); text-transform: uppercase;
+  }
+  .fact .fv { font-size: 0.86rem; color: var(--text); }
+
+  .lead { color: var(--text-dim); max-width: 760px; margin: 24px 0 8px; font-size: 0.95rem; }
+
+  /* SCENARIO GRID */
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px; margin-top: 26px;
+  }
+  .scn {
+    border: 1px solid var(--panel-line); background: var(--panel);
+    padding: 22px 22px 20px; position: relative; overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+  .scn::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+    background: var(--accent); box-shadow: 0 0 14px var(--accent);
+  }
+  .scn:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 22%, transparent);
+    transform: translateY(-3px);
+  }
+  .scn-top { display: flex; align-items: center; justify-content: space-between; }
+  .scn-num {
+    font-family: var(--crt); font-size: 2.4rem; line-height: 1;
+    color: var(--accent); text-shadow: 0 0 12px var(--accent);
+  }
+  .scn-maps {
+    font-family: var(--crt); font-size: 0.95rem; letter-spacing: 1px;
+    color: var(--text-dim); border: 1px solid var(--panel-line);
+    padding: 3px 10px; border-radius: 3px; text-transform: uppercase;
+  }
+  .scn h3 { font-size: 1.05rem; color: #fff; margin: 12px 0 8px; line-height: 1.25; }
+  .scn-desc { font-size: 0.86rem; color: var(--text-dim); margin-bottom: 14px; }
+  .scn-skills-label {
+    font-family: var(--crt); font-size: 0.95rem; letter-spacing: 2px;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .scn-skills { list-style: none; }
+  .scn-skills li {
+    position: relative; padding-left: 18px; margin: 6px 0;
+    font-size: 0.82rem; color: var(--text);
+  }
+  .scn-skills li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
+
+  /* TAKEAWAY */
+  .takeaway {
+    margin-top: 40px; border: 1px solid var(--neon-amber);
+    background: linear-gradient(180deg, rgba(255, 182, 39, 0.05), transparent);
+    padding: 26px 28px; box-shadow: 0 0 26px rgba(255, 182, 39, 0.1);
+  }
+  .takeaway h3 {
+    font-family: var(--crt); font-size: 1.6rem; color: var(--neon-amber);
+    letter-spacing: 2px; text-shadow: 0 0 10px rgba(255, 182, 39, 0.5); margin-bottom: 14px;
+  }
+  .takeaway ul { list-style: none; }
+  .takeaway li { padding-left: 26px; position: relative; margin: 12px 0; font-size: 0.92rem; color: var(--text-dim); }
+  .takeaway li::before { content: '▸'; position: absolute; left: 0; color: var(--neon-amber); font-size: 1.1rem; }
+  .takeaway b { color: var(--neon-cyan); }
+
+  footer {
+    margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--panel-line);
+    color: var(--text-dim); font-size: 0.78rem; text-align: center; letter-spacing: 1px;
+  }
+
+  .glow-lm { color: var(--neon-lime); }
+</style>

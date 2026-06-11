@@ -52,13 +52,13 @@ const bodyHtml = `<header>
             <div class="convo-empty">The conversation starts with the customer's request. Click NEXT STEP to watch tool results come back and shape the model's next decision.</div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <div class="controls">
-      <button class="ctl" id="nextBtn">Next Step ▸</button>
-      <button class="ctl ghost" id="resetBtn">↺ Reset</button>
-      <span class="progress" id="chainProgress">0 / 4</span>
+        <div class="controls">
+          <button class="ctl" id="nextBtn">Next Step 1 ▸</button>
+          <button class="ctl ghost" id="resetBtn">↺ Reset</button>
+          <span class="progress" id="chainProgress">0 / 4</span>
+        </div>
+      </div>
     </div>
 
     <div class="takeaway">
@@ -79,6 +79,7 @@ const bodyHtml = `<header>
           <div class="ws">The model picks the next tool from context.</div>
         </div>
         <div class="way-body">
+          <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">model_driven.py</span></div>
 <pre><code><span class="c"># You give Claude the tools and let it decide.</span>
 tools <span class="k">=</span> [get_customer, lookup_order,
          process_refund, escalate]
@@ -102,6 +103,7 @@ tools <span class="k">=</span> [get_customer, lookup_order,
           <div class="ws">Your code picks the tools, in a fixed order.</div>
         </div>
         <div class="way-body">
+          <div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">decision_tree.py</span></div>
 <pre><code><span class="c"># You write the steps yourself, in advance.</span>
 customer <span class="k">=</span> <span class="f">get_customer</span>(customer_id)
 
@@ -244,7 +246,9 @@ customer <span class="k">=</span> <span class="f">get_customer</span>(customer_i
   .dot.y{background:var(--neon-amber);box-shadow:0 0 8px var(--neon-amber);}
   .dot.g{background:var(--neon-lime);box-shadow:0 0 8px var(--neon-lime);}
   .convo-bar .fname{margin-left:8px;font-size:0.76rem;color:var(--text-dim);letter-spacing:1px;}
-  .convo-
+  .code-bar{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--panel-line);background:var(--panel);}
+  .code-bar .fname{margin-left:8px;font-size:0.76rem;color:var(--text-dim);letter-spacing:1px;}
+  .convo-body{padding:14px 16px;max-height:380px;overflow-y:auto;}
   .msg{margin:0 0 10px;padding:8px 12px;border-radius:3px;}
   .msg .role{font-family:var(--crt);font-size:1rem;letter-spacing:1px;display:block;margin-bottom:3px;}
   .msg.user{background:rgba(255,182,39,0.06);border-left:2px solid var(--neon-amber);}
@@ -276,7 +280,6 @@ customer <span class="k">=</span> <span class="f">get_customer</span>(customer_i
   .way-head .ws{font-size:0.8rem;color:var(--text-dim);margin-top:4px;}
   .way.driven .wt{color:var(--neon-cyan);text-shadow:0 0 8px rgba(25,240,255,0.4);}
   .way.tree .wt{color:var(--neon-magenta);text-shadow:0 0 8px rgba(255,43,214,0.4);}
-  .way-
   .way pre{margin:0;padding:16px 18px;overflow-x:auto;font-size:0.78rem;line-height:1.6;tab-size:4;}
   .way pre code{font-family:var(--mono);color:var(--text);}
   .k{color:var(--neon-magenta);} .s{color:var(--neon-lime);} .c{color:var(--text-dim);font-style:italic;} .f{color:var(--neon-cyan);} .n{color:var(--neon-amber);}
@@ -389,7 +392,7 @@ customer <span class="k">=</span> <span class="f">get_customer</span>(customer_i
     }
 
     nextBtn.disabled = current >= TOTAL;
-    nextBtn.textContent = current >= TOTAL ? '✓ Task complete' : 'Next Step ▸';
+    nextBtn.textContent = current >= TOTAL ? '✓ Task complete' : 'Next Step ' + (current + 1) + ' ▸';
   }
 
   nextBtn.addEventListener('click', function(){ if(current < TOTAL){ current++; render(); } });
